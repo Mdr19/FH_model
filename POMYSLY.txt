@@ -5,3 +5,5 @@
 - Długość interwalu obs poczatkowego
 
 - symulacja PDE - optymalna ilosc elementow, optymalny czas probkowania
+
+test
