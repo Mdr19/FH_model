@@ -37,7 +37,7 @@ classdef MD_constant_values_Z3_PDE_sim
         T_sim=250;                                               % szerokoœæ interwa³u syulacji
         model_change_threshold=MD_constant_values_Z3.T_sim;     % próg od którego re-identyfikacja - bylo MD_constant_values.T_sim*0.2
         var_threshold=0.01;              % minimalna wariancja dla wejœcia    % bylo 0.01
-        change_model=1;                  % update modelu podczas symulacji
+        change_model=0;                  % update modelu podczas symulacji
         model_reident=0;                 % re-identyfikacja modelu GS
         sum_sqr_difference=1;            % ró¿nica model-obiekt abs/sqr
         
@@ -61,7 +61,7 @@ classdef MD_constant_values_Z3_PDE_sim
       
         %% Parametry dla identyfikowanych modeli
           %% Parametry dla identyfikowanych modeli
-        ident_models_nr=10;                              % bylo 7
+        ident_models_nr=5;                              % bylo 7
 
         ident_models1_N=5;
         ident_models1_M=6;

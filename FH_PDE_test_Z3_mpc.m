@@ -24,7 +24,7 @@ save_mode=0;
 %FH_data.k_1=0.000035320876450;                   %0.000034735233678004;
 %FH_data.k_2=0.012490048627167;                   %0.000813764203449597*15;
 
-sample_time=20;
+sample_time=10;
 elements_nr=5;
 
 
@@ -285,11 +285,12 @@ for i=1:intervals_nr
         if ~isempty(ident_section_Z3.current_model) &&...
             ~isempty(ident_section_Z3.ident_models(ident_section_Z3.current_model_nr).intervals(end-1).interval_type)
         
-            ident_section_Z3.obtain_MPC_model(0.03);        %bylo 0.03
+            %ident_section_Z3.obtain_MPC_model(0.03);        %bylo 0.03
+            ident_section_Z3.obtain_MPC_model(5,0.6,150,MD_constant_values.h_Z3);        %0.03
             FH_get_MPC_model(ident_section_Z3,'Z3');
             
         elseif ~isempty(ident_section_Z3.MPC_model)
-            %FH_update_state_MPC_model(ident_section_Z3,'Z3');
+            FH_update_state_MPC_model(ident_section_Z3,'Z3');
         end
         
     end

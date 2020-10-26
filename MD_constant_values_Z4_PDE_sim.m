@@ -29,7 +29,7 @@ classdef MD_constant_values_Z4_PDE_sim
         message_display=0;
         
         %% identification params
-        init_model_intervals=8; %*2+2; % by這 6
+        init_model_intervals=8-2; %*2+2; % by這 6
         new_model_intervals=4;           % by這 4
         new_model_min_inputs=2;          % minimalna liczba wejsc z duzymi zmianami dla identyfikacji - bylo 1
         ident_intervals=4*2*2;           % by這 16
@@ -63,7 +63,7 @@ classdef MD_constant_values_Z4_PDE_sim
       
         %% Parametry dla identyfikowanych modeli
           %% Parametry dla identyfikowanych modeli
-        ident_models_nr=10;                              % bylo 7
+        ident_models_nr=5;                              % bylo 7
 
         ident_models1_N=5;
         ident_models1_M=6;

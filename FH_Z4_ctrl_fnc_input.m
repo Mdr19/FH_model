@@ -137,7 +137,7 @@ elseif MD_constant_values.sim_mode_Z4==2
         
         delta_t=t(1)-time_temp;
         
-        h=0.05;         %0.03  0.02
+        h=MD_constant_values.h_Z4;         %0.03  0.02
         time_=time_temp:h:t(1);
         
         time_temp=t(1);

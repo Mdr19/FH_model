@@ -115,7 +115,7 @@ elseif MD_constant_values.sim_mode_Z3==2
     if t(1)==0
         result=u_prev.Z3(1);
         u_mpc.Z3=u_prev.Z3-MPC_model.Z3.ctrl_offset';
-        %state_prev.Z3=MPC_model.Z3.X0;
+        state_prev.Z3=MPC_model.Z3.X0;
         
         if isempty(output_signal.Z3)
             input_signal_applied.Z3_input_1=[input_signal_applied.Z3_input_1; [t(1) u_prev.Z3(1)]];
@@ -140,7 +140,7 @@ elseif MD_constant_values.sim_mode_Z3==2
         
         delta_t=t(1)-time_temp;
         
-        h=0.1;         %0.03  0.02
+        h=MD_constant_values.h_Z3;         %0.03  0.02
         time_=time_temp:h:t(1);
         
         time_temp=t(1);
@@ -166,16 +166,16 @@ elseif MD_constant_values.sim_mode_Z3==2
             u_mpc.Z3=u_prev.Z3-MPC_model.Z3.ctrl_offset';
         end
         
-        %{
+        
         if isnan(MPC_model.Z3.X0)
             MPC_model.Z3.X0=state_prev.Z3;
         end
-        %}
+        
         
         result=u_mpc.Z3+MPC_model.Z3.ctrl_offset';
         
         u_prev.Z3=result;                           % z offsetem
-        %state_prev.Z3=MPC_model.Z3.X0;
+        state_prev.Z3=MPC_model.Z3.X0;
         
         input_signal_applied.Z3_input_1=[input_signal_applied.Z3_input_1; [t(1) result(1)]];
         input_signal_applied.Z3_input_2=[input_signal_applied.Z3_input_2; [t(1) result(2)]];

@@ -24,7 +24,7 @@ save_mode=0;
 %FH_data.k_1=0.000035320876450;                   %0.000034735233678004;
 %FH_data.k_2=0.012490048627167;                   %0.000813764203449597*15;
 
-sample_time=10;
+sample_time=20;
 elements_nr=5;
 
 
@@ -127,6 +127,7 @@ switch data_set
         
 end
 
+MD_generate_signals_fnc(4,data_set,FH4_data.start_index,7000);
 
 FH3_data.k_1=0.000027935076328;
 FH3_data.k_2=0.011686309211677;
@@ -171,8 +172,10 @@ FH4_data.file_path='plikiCSV_Panevezys\FH11';
 FH4_data.section_name='Z4';
 FH4_data.Z4_input_signal_function='FH_Z4_ctrl_fnc_input(u,t)';
 
-FH4_data.pull_file=strcat(FH4_data.file_path,'\',FH4_data.sim_date,'\',FH4_data.section_name,'.csv');
-FH4_data.temp_SP_file=strcat(FH4_data.file_path,'\',FH4_data.sim_date,'\',FH4_data.section_name,'.csv');
+%FH4_data.pull_file=strcat(FH4_data.file_path,'\',FH4_data.sim_date,'\',FH4_data.section_name,'.csv');
+%FH4_data.temp_SP_file=strcat(FH4_data.file_path,'\',FH4_data.sim_date,'\',FH4_data.section_name,'.csv');
+FH4_data.pull_file='Z4_PULL_original.csv';
+FH4_data.temp_SP_file='Z4_temp_SP.csv';
 FH4_data.input_signal_file=strcat(FH4_data.file_path,'\',FH4_data.sim_date,'\',FH4_data.section_name,'.csv');
 FH4_data.temp_prev_file=strcat(FH4_data.file_path,'\',FH4_data.sim_date,'\',FH4_data.section_name,'.csv');
 FH4_data.temp_measured_file=strcat(FH4_data.file_path,'\',FH4_data.sim_date,'\',FH4_data.section_name,'.csv');
@@ -259,7 +262,8 @@ for i=1:intervals_nr
         %FH_sections(2).perform_simulation_multizone(cnt_start+i*interval,FH_sections(1));
     end
     
-    
+    ident_section_Z4.define_interval_plant(FH_sections(1),i);
+
     if i>3
         
         %{
@@ -273,8 +277,6 @@ for i=1:intervals_nr
 
         %------------------------------------------------------------------
         %}
-        
-        ident_section_Z4.define_interval_plant(FH_sections(1),i);
         ident_section_Z4.simulate_model_output_plant(FH_sections(1),(i-1)*interval,i*interval-1);
         ident_section_Z4.ident_model_plant(FH_sections(1));
         
@@ -285,9 +287,11 @@ for i=1:intervals_nr
         if ~isempty(ident_section_Z4.current_model) &&...
                 ~isempty(ident_section_Z4.ident_models(ident_section_Z4.current_model_nr).intervals(end-1).interval_type)
             
-            ident_section_Z4.obtain_MPC_model(3,0.6,150,0.05);        %0.03
-            FH_get_MPC_model(ident_section_Z4,'Z4');                     
-            
+            if FH4_data.sim_mode==2
+                ident_section_Z4.obtain_MPC_model(3,0.6,150,MD_constant_values.h_Z4);        %0.03
+                FH_get_MPC_model(ident_section_Z4,'Z4');                     
+            end
+                
         elseif ~isempty(ident_section_Z4.MPC_model)
             %FH_update_state_MPC_model(ident_section_Z4,'Z4');
         end

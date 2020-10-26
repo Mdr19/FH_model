@@ -26,7 +26,8 @@ classdef MD_constant_values
         Ki_cln=0.1;
         
         %% MPC model params
-        
+        h_Z3=0.0005;
+        h_Z4=0.05;
         %mpc_tau=0.1;
         
         %% Ogólne parametry
