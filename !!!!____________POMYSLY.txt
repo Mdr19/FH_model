@@ -1,0 +1,7 @@
+- Inna forma obserwatora - wysypywanie się algorytmu dla małych zmian sygnału np. przykład 0 dla Z4
+
+- Maksymalna długość pierwszego okna identyfikacji
+
+- Długość interwalu obs poczatkowego
+
+- symulacja PDE - optymalna ilosc elementow, optymalny czas probkowania
