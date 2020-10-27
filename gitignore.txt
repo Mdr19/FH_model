@@ -1,0 +1,5 @@
+plikiCSV_Panevezys/
+plikiCSV_Panevezys_/
+bin/
+!!!!____________POMYSLY
+POMYSLY
