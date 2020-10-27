@@ -14,6 +14,7 @@ classdef MD_ident_section < handle
         delay_poly;
         
         filename;
+        sim_pull_filename;
         
         current_interval;
         current_model_nr;
@@ -133,7 +134,12 @@ classdef MD_ident_section < handle
             
             obj.signals_intervals(obj.current_interval).original_signals(obj.inputs_nr+1,:)=section_sim.intervals(interval_nr).simulated_temp_resampled;
             obj.signals_intervals(obj.current_interval).original_signals(obj.inputs_nr+2,:)=section_sim.intervals(interval_nr).signals(obj.inputs_nr+2,:);
-            obj.signals_intervals(obj.current_interval).original_signals(obj.inputs_nr+3,:)=section_sim.intervals(interval_nr).signals(obj.inputs_nr+3,:);
+            
+            if obj.ident_method_params.pull_uncertain
+                obj.signals_intervals(obj.current_interval).original_signals(obj.inputs_nr+3,:)=section_sim.intervals(interval_nr).signals(obj.inputs_nr+4,:);
+            else
+                obj.signals_intervals(obj.current_interval).original_signals(obj.inputs_nr+3,:)=section_sim.intervals(interval_nr).signals(obj.inputs_nr+3,:);
+            end
             
             obj.signals_intervals(obj.current_interval).time=section_sim.intervals(interval_nr).time;
             
@@ -948,11 +954,11 @@ classdef MD_ident_section < handle
                     X0=[X0; obj.signals_intervals(end).original_signals(3,end)-...
                     obj.ident_models(obj.current_model_nr).offset_value(end)];
     
-                    %{
+                    
                     n=rank(obj.current_model.A);
                     X0=[zeros(n,1); obj.signals_intervals(end).original_signals(3,end)-...
                     obj.ident_models(obj.current_model_nr).offset_value(end)];
-                    %}
+                    
                 else
                     Ac=obj.current_model(2).A;
                     Bc=obj.current_model(2).B;
@@ -965,11 +971,11 @@ classdef MD_ident_section < handle
                     X0=[X0; obj.signals_intervals(end).original_signals(3,end)-...
                         obj.ident_models(obj.current_model_nr).offset_value(end)];
                     
-                    %{
+                    
                     n=rank(obj.current_model(2).A);
                     X0=[zeros(n,1); obj.signals_intervals(end).original_signals(3,end)-...
                     obj.ident_models(obj.current_model_nr).offset_value(end)];
-                    %}
+                    
                 end
                 
                 obj.MPC_model.X0=X0;

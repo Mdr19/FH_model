@@ -145,12 +145,14 @@ FH3_data.Z3_input_signal_function_1='FH_Z3_ctrl_fnc_input_1(u,t)';
 FH3_data.Z3_input_signal_function_2='FH_Z3_ctrl_fnc_input_2(u,t)';
 
 FH3_data.pull_file=strcat(FH3_data.file_path,'\',FH3_data.sim_date,'\',FH3_data.section_name,'.csv');
+FH3_data.pull_saved_file=strcat(FH3_data.file_path,'\',FH3_data.sim_date,'\',FH3_data.section_name,'.csv');
 FH3_data.temp_SP_file=strcat(FH3_data.file_path,'\',FH3_data.sim_date,'\',FH3_data.section_name,'.csv');
 FH3_data.input_signal_file=strcat(FH3_data.file_path,'\',FH3_data.sim_date,'\',FH3_data.section_name,'.csv');
 FH3_data.temp_prev_file=strcat(FH3_data.file_path,'\',FH3_data.sim_date,'\',FH3_data.section_name,'.csv');
 FH3_data.temp_measured_file=strcat(FH3_data.file_path,'\',FH3_data.sim_date,'\',FH3_data.section_name,'.csv');
 
 FH3_data.sim_mode=MD_constant_values.sim_mode_Z3;
+FH3_data.pull_uncertain=MD_constant_values.pull_uncertain_Z3;
 
 % FH 4
 
@@ -175,14 +177,14 @@ FH4_data.Z4_input_signal_function='FH_Z4_ctrl_fnc_input(u,t)';
 %FH4_data.pull_file=strcat(FH4_data.file_path,'\',FH4_data.sim_date,'\',FH4_data.section_name,'.csv');
 %FH4_data.temp_SP_file=strcat(FH4_data.file_path,'\',FH4_data.sim_date,'\',FH4_data.section_name,'.csv');
 FH4_data.pull_file='Z4_PULL_original.csv';
+FH4_data.pull_saved_file='Z4_PULL_saved.csv';
 FH4_data.temp_SP_file='Z4_temp_SP.csv';
 FH4_data.input_signal_file=strcat(FH4_data.file_path,'\',FH4_data.sim_date,'\',FH4_data.section_name,'.csv');
 FH4_data.temp_prev_file=strcat(FH4_data.file_path,'\',FH4_data.sim_date,'\',FH4_data.section_name,'.csv');
 FH4_data.temp_measured_file=strcat(FH4_data.file_path,'\',FH4_data.sim_date,'\',FH4_data.section_name,'.csv');
 
 FH4_data.sim_mode=MD_constant_values.sim_mode_Z4;
-
-
+FH4_data.pull_uncertain=MD_constant_values.pull_uncertain_Z4;
 
 %forehearth_name={'FH11'};
 file_path=FH3_data.file_path;

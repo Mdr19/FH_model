@@ -146,14 +146,16 @@ for kk=1:N_sim;
     %udot=Lzerot*eta;
     
     %X_hat_=X_hat_+(A*X_hat_+K_ob*(y(kk)-C*X_hat_))*h+B*udot*h
+    %{
     h2 = h/2; h3 = h/3; h6 = h3/2;
     
     dx1=(A*X_hat+K_ob*(y(kk)-C*X_hat))+B*udot;
     dx2=(A*(X_hat+h2*dx1)+K_ob*(y(kk)-C*(X_hat+h2*dx1)))+B*udot;
     dx3=(A*(X_hat+h2*dx2)+K_ob*(y(kk)-C*(X_hat+h2*dx2)))+B*udot;
     dx4=(A*(X_hat+h*dx3)+K_ob*(y(kk)-C*(X_hat+h*dx3)))+B*udot;
-
-    %X_hat=X_hat+h3*(dx2+dx3)+h6*(dx1+dx4);
+    
+    X_hat=X_hat+h3*(dx2+dx3)+h6*(dx1+dx4);
+    %}
     
     X_hat=X_hat+(A*X_hat+K_ob*(y(kk)-C*X_hat))*h+B*udot*h;
     

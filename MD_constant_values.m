@@ -9,6 +9,9 @@ classdef MD_constant_values
         sim_mode_Z3=2;
         sim_mode_Z4=2;
         
+        pull_uncertain_Z3=0;
+        pull_uncertain_Z4=1;
+        
         temp_poly_rank=2;                  % 4 pocz., potem 6
         
         %DC_mode=0;                       % dodatkowe sterowanie FF
@@ -26,8 +29,8 @@ classdef MD_constant_values
         Ki_cln=0.1;
         
         %% MPC model params
-        h_Z3=0.0005;
-        h_Z4=0.05;
+        h_Z3=0.0005;      %0.0005
+        h_Z4=0.001;
         %mpc_tau=0.1;
         
         %% Ogólne parametry

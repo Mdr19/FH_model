@@ -11,6 +11,7 @@ classdef FH_section_sim < handle
         inputs_nr;
         
         pull_file;
+        pull_saved_file;
         temp_SP_file;
         input_signal_file;
         temp_prev_file;
@@ -46,6 +47,9 @@ classdef FH_section_sim < handle
         % Z3 functions
         Z3_input_signal_function_1;
         Z3_input_signal_function_2;
+        
+        % uncertain pull
+        pull_uncertain;
         
     end
     
@@ -90,12 +94,14 @@ classdef FH_section_sim < handle
                 end
                 
                 obj.pull_file=FH_section_data.pull_file;
+                obj.pull_saved_file=FH_section_data.pull_saved_file;
                 obj.temp_SP_file=FH_section_data.temp_SP_file;
                 obj.input_signal_file=FH_section_data.input_signal_file;
                 obj.temp_prev_file=FH_section_data.temp_prev_file;
                 obj.temp_measured_file=FH_section_data.temp_measured_file;
-                
+                                
                 obj.sim_mode=FH_section_data.sim_mode;
+                obj.pull_uncertain=FH_section_data.pull_uncertain;
                 
             end
         end
@@ -325,9 +331,21 @@ classdef FH_section_sim < handle
             if obj.inputs_nr==2
                 obj.intervals(obj.current_interval).signals(5,:)=MD_get_from_file(char(obj.pull_file),...
                     obj.signals_names(5),obj.current_index,end_time-1,0,MD_constant_values.FH_message_display);
+                
+                if obj.pull_uncertain
+                    obj.intervals(obj.current_interval).signals(6,:)=MD_get_from_file(char(obj.pull_saved_file),...
+                    obj.signals_names(5),obj.current_index,end_time-1,0,MD_constant_values.FH_message_display);
+                end
+                
             elseif obj.inputs_nr==3
                 obj.intervals(obj.current_interval).signals(6,:)=MD_get_from_file(char(obj.pull_file),...
                     obj.signals_names(6),obj.current_index,end_time-1,0,MD_constant_values.FH_message_display);
+                
+                 if obj.pull_uncertain
+                    obj.intervals(obj.current_interval).signals(7,:)=MD_get_from_file(char(obj.pull_saved_file),...
+                    obj.signals_names(6),obj.current_index,end_time-1,0,MD_constant_values.FH_message_display);
+                end
+                
             end
             
             % time vector
@@ -571,9 +589,21 @@ classdef FH_section_sim < handle
             if obj.inputs_nr==2
                 obj.intervals(obj.current_interval).signals(5,:)=MD_get_from_file(char(obj.pull_file),...
                     obj.signals_names(5),obj.current_index,end_time-1,0,MD_constant_values.FH_message_display);
+                
+                if obj.pull_uncertain
+                    obj.intervals(obj.current_interval).signals(6,:)=MD_get_from_file(char(obj.pull_saved_file),...
+                    obj.signals_names(5),obj.current_index,end_time-1,0,MD_constant_values.FH_message_display);
+                end
+                
             elseif obj.inputs_nr==3
                 obj.intervals(obj.current_interval).signals(6,:)=MD_get_from_file(char(obj.pull_file),...
                     obj.signals_names(6),obj.current_index,end_time-1,0,MD_constant_values.FH_message_display);
+                
+                if obj.pull_uncertain
+                    obj.intervals(obj.current_interval).signals(7,:)=MD_get_from_file(char(obj.pull_saved_file),...
+                    obj.signals_names(6),obj.current_index,end_time-1,0,MD_constant_values.FH_message_display);
+                end
+                
             end
             
             % time vector
@@ -719,8 +749,6 @@ classdef FH_section_sim < handle
             text(1,obj.fea.sol.u(1,end),num2str(obj.current_interval));
             %}
         end
-        
-        
         
         
         function signal_long=get_signal(obj,signal_nr,start_index,end_index)

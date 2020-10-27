@@ -290,7 +290,7 @@ for i=1:intervals_nr
             FH_get_MPC_model(ident_section_Z3,'Z3');
             
         elseif ~isempty(ident_section_Z3.MPC_model)
-            FH_update_state_MPC_model(ident_section_Z3,'Z3');
+            %FH_update_state_MPC_model(ident_section_Z3,'Z3');
         end
         
     end
