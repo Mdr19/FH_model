@@ -10,7 +10,7 @@ X_hat=X0;
 %global u_mpc;
 
 N_sim=length(y);
-t=0:h:(N_sim-1)*h;
+%t=0:h:(N_sim-1)*h;
 
 n=size(A,1);
 n_in=size(B,2);
@@ -32,16 +32,16 @@ u=u_initial;
 %Deltau_min=[-0.4;-0.4];
 
 %M=[Lzerot;-Lzerot];
-Deltau_max=[0.5]';          %0.02  0.05
-Deltau_min=[-0.5]';
+Deltau_max=[0.05]';          %0.02  0.05
+Deltau_min=[-0.05]';
 u_max(1,:)=6-u_offset(1);
 u_min(1,:)=0.6-u_offset(1);
 
 if n_in==2
     u_max(2,:)=75-u_offset(2);
     u_min(2,:)=5-u_offset(2);
-    Deltau_max(2,:)=0.05;
-    Deltau_min(2,:)=-0.05;
+    Deltau_max(2,:)=0.5;
+    Deltau_min(2,:)=-0.5;
 end
 
 %[Mu,Mu1]=Mucon(p,N,n_in,h,0.1);
@@ -73,8 +73,10 @@ for kk=1:N_sim;
     
         if udot(1)>Deltau_max
             active_constraints(3)=1;
+            %h=0.0001;
         elseif udot(1)<Deltau_min
             active_constraints(4)=1;
+            %h=0.0001;
         end
         
     elseif n_in==2
@@ -109,10 +111,6 @@ for kk=1:N_sim;
     M_act=[];
     gamma_act=[];
     
-    if sum(active_constraints)>0
-        h=0.01;
-    end
-    
     for i=1:size(gamma,1)
         
         %active_constraints
@@ -123,13 +121,15 @@ for kk=1:N_sim;
         end
     end
         
-    %{
+    
     if sum(active_constraints)>0
+        %h=0.00001;
         l_act=-inv((M_act*inv(Omega)*M_act'))*(gamma_act+M_act*inv(Omega)*(Psi*Xf));
         eta=-Omega\(Psi*Xf)-Omega\(M_act'*l_act);
         udot=Lzerot*eta;
+        
     end
-    %}
+    
     
     %{
     if udot>Deltau_max
@@ -151,7 +151,7 @@ for kk=1:N_sim;
     %udot=Lzerot*eta;
     
     %X_hat_=X_hat_+(A*X_hat_+K_ob*(y(kk)-C*X_hat_))*h+B*udot*h
-    %{
+    
     h2 = h/2; h3 = h/3; h6 = h3/2;
     
     dx1=(A*X_hat+K_ob*(y(kk)-C*X_hat))+B*udot;
@@ -160,9 +160,9 @@ for kk=1:N_sim;
     dx4=(A*(X_hat+h*dx3)+K_ob*(y(kk)-C*(X_hat+h*dx3)))+B*udot;
     
     X_hat=X_hat+h3*(dx2+dx3)+h6*(dx1+dx4);
-    %}
     
-    X_hat=X_hat+(A*X_hat+K_ob*(y(kk)-C*X_hat))*h+B*udot*h;
+    
+    %X_hat=X_hat+(A*X_hat+K_ob*(y(kk)-C*X_hat))*h+B*udot*h;
     
     
     u=u+udot*h;

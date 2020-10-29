@@ -30,7 +30,7 @@ classdef MD_constant_values
         
         %% MPC model params
         h_Z3=0.0005;      %0.0005       0.01
-        h_Z4=0.01;
+        h_Z4=0.001;      %0.01
         %mpc_tau=0.1;
         
         %% Ogólne parametry

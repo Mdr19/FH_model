@@ -42,7 +42,7 @@ FH3_data.k_4=0.002548259469871;
 
 % 7 - spadek
 
-data_set=7;
+data_set=8;
 
 switch data_set
     case 1
@@ -106,7 +106,7 @@ switch data_set
         FH4_data.start_index=27000;
         
         intervals_nr=24+4; %50;%+25; %45
-        
+        signals_len=7000;
         
     case 9
         FH_data.sim_date='01_23';
