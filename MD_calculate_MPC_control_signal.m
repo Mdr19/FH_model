@@ -32,19 +32,22 @@ u=u_initial;
 %Deltau_min=[-0.4;-0.4];
 
 %M=[Lzerot;-Lzerot];
-Deltau_max=[0.05 0.05]';          %0.02
-Deltau_min=[-0.05 -0.05]';
+Deltau_max=[0.5]';          %0.02  0.05
+Deltau_min=[-0.5]';
 u_max(1,:)=6-u_offset(1);
 u_min(1,:)=0.6-u_offset(1);
 
 if n_in==2
     u_max(2,:)=75-u_offset(2);
     u_min(2,:)=5-u_offset(2);
+    Deltau_max(2,:)=0.05;
+    Deltau_min(2,:)=-0.05;
 end
 
 %[Mu,Mu1]=Mucon(p,N,n_in,h,0.1);
 
 gamma=[u_max-u;-u_min+u;Deltau_max;-Deltau_min];
+%gamma=[u_max-u;-u_min+u];
 
 
 for kk=1:N_sim;
@@ -106,9 +109,11 @@ for kk=1:N_sim;
     M_act=[];
     gamma_act=[];
     
+    if sum(active_constraints)>0
+        h=0.01;
+    end
     
-    
-    for i=1:size(M,1)
+    for i=1:size(gamma,1)
         
         %active_constraints
         
@@ -118,13 +123,13 @@ for kk=1:N_sim;
         end
     end
         
-    
+    %{
     if sum(active_constraints)>0
         l_act=-inv((M_act*inv(Omega)*M_act'))*(gamma_act+M_act*inv(Omega)*(Psi*Xf));
         eta=-Omega\(Psi*Xf)-Omega\(M_act'*l_act);
         udot=Lzerot*eta;
     end
-    
+    %}
     
     %{
     if udot>Deltau_max
@@ -162,10 +167,10 @@ for kk=1:N_sim;
     
     u=u+udot*h;
     gamma=[u_max-u;-u_min+u;Deltau_max;-Deltau_min];
-    
+    %gamma=[u_max-u;-u_min+u];
 end
 
-disp(['Single iter, init. error: '  num2str(num2str(y(1)-sp(1))) ', X_hat: ' num2str(X_hat')  ', Xsp: ' num2str(Xsp')]);
+disp(['Single iter, init. error: '  num2str(num2str(y(1)-sp(1))) ', X_hat: ' num2str(X_hat')  ', Xsp: ' num2str(Xsp') ', ctrl. ' num2str(u)]);
 
 end
 

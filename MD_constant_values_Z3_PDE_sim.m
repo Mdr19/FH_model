@@ -7,7 +7,7 @@ classdef MD_constant_values_Z3_PDE_sim
         pull_signal_len=100;
         
         %% Wykresy dla reidentyfikacji
-        plot_reident=0;
+        plot_reident=1;
         plot_new_model=1;
 
         %% linearization

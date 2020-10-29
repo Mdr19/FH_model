@@ -24,7 +24,7 @@ save_mode=0;
 %FH_data.k_1=0.000035320876450;                   %0.000034735233678004;
 %FH_data.k_2=0.012490048627167;                   %0.000813764203449597*15;
 
-sample_time=20;
+sample_time=10;
 elements_nr=5;
 
 
@@ -42,7 +42,7 @@ FH3_data.k_4=0.002548259469871;
 
 % 7 - spadek
 
-data_set=8;
+data_set=7;
 
 switch data_set
     case 1
@@ -70,6 +70,7 @@ switch data_set
         FH4_data.start_index=4000;
         
         intervals_nr=24; %50;%+25; %45
+        signals_len=7000;
         
     case 5
         FH_data.sim_date='03_26';
@@ -90,8 +91,8 @@ switch data_set
         FH4_data.sim_date='05_09';
         FH4_data.start_index=61000-1000;
         
-        intervals_nr=30+15; %+15; %50;%+25; %45
-        
+        intervals_nr=30+15-17; %+15; %50;%+25; %45
+        signals_len=8000;
         
     case 8
         %FH_data.sim_date='05_31';
@@ -127,7 +128,7 @@ switch data_set
         
 end
 
-MD_generate_signals_fnc(4,data_set,FH4_data.start_index,7000);
+MD_generate_signals_fnc(4,data_set,FH4_data.start_index,signals_len);
 
 FH3_data.k_1=0.000027935076328;
 FH3_data.k_2=0.011686309211677;

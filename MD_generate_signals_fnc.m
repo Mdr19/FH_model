@@ -11,6 +11,28 @@ switch(data_set)
         pull_var_name='FH11_Z3_TEMP_PV';
         file_path='plikiCSV_Panevezys\04_23\FH11\Z3.csv';
         
+    case 7
+        
+        pull_var_name='FH11_PULL';
+        
+        pull_steps_original=[1 2400 2800 2900 4800];
+        pull_values_original=[114 95 100 105 112];
+        
+        pull_steps_saved=[1 2400 2800 2900 4800];
+        pull_values_saved=[114 95 100 105 112];
+        
+        if zone_nr==3
+            temp_SP_steps=[1 1000 2500 4500];
+            temp_SP_values=[1158 1168 1175 1183];
+            temp_SP_file='Z3_temp_SP.csv';
+            temp_SP_var_name='FH11_Z3_TEMP_SP';
+        elseif zone_nr==4
+            temp_SP_steps=[1 820 2000-400 2500+100 3500-100 4300 5400];
+            temp_SP_values=[1181 1178 1175 1170 1165 1160 1155];
+            temp_SP_file='Z4_temp_SP.csv';
+            temp_SP_var_name='FH11_Z4_TEMP_SP';
+        end
+        
     case 8
         
         

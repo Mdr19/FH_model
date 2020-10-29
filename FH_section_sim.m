@@ -437,7 +437,7 @@ classdef FH_section_sim < handle
             
             if (obj.sim_mode==1) || (obj.sim_mode==2 && sim_mode_append==1)
                                 
-                input_signal_resampled=interp1(obj.intervals(obj.current_interval).simulated_temp.time,input_signal_applied.(strcat(obj.section_name,'_input_1')),obj.intervals(obj.current_interval).time);
+                input_signal_resampled=interp1(obj.intervals(obj.current_interval).simulated_temp.time,input_signal_applied.(strcat(obj.section_name,'_input_1')),obj.intervals(obj.current_interval).time,'nearest');
                                 
                 input_signal_resampled=input_signal_resampled(:,2);
                 
