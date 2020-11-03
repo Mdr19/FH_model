@@ -90,8 +90,8 @@ switch data_set
         FH4_data.sim_date='05_09';
         FH4_data.start_index=61000-1000;
 
-        intervals_nr=30+15; %+15; %50;%+25; %45
-        
+        intervals_nr=30+15-16; %+15; %50;%+25; %45
+        signals_len=10000;
         
     case 8
         %FH_data.sim_date='05_31';
@@ -105,7 +105,7 @@ switch data_set
         FH4_data.start_index=27000;
 
         intervals_nr=24+4; %50;%+25; %45
-        
+        signals_len=7000;
         
     case 9
         FH_data.sim_date='01_23';
@@ -123,10 +123,10 @@ switch data_set
         FH_data.sim_date='03_16';
         FH_data.start_index=25600;
         intervals_nr=30; %7; %28;
-        
-        
+            
 end
 
+MD_generate_signals_fnc(3,data_set,FH3_data.start_index,signals_len);
 
 FH3_data.k_1=0.000027935076328;
 FH3_data.k_2=0.011686309211677;
@@ -144,12 +144,18 @@ FH3_data.Z3_input_signal_function_1='FH_Z3_ctrl_fnc_input_1(u,t)';
 FH3_data.Z3_input_signal_function_2='FH_Z3_ctrl_fnc_input_2(u,t)';
 
 FH3_data.pull_file=strcat(FH3_data.file_path,'\',FH3_data.sim_date,'\',FH3_data.section_name,'.csv');
-FH3_data.temp_SP_file=strcat(FH3_data.file_path,'\',FH3_data.sim_date,'\',FH3_data.section_name,'.csv');
+FH3_data.pull_saved_file=strcat(FH3_data.file_path,'\',FH3_data.sim_date,'\',FH3_data.section_name,'.csv');
+
+%FH3_data.temp_SP_file=strcat(FH3_data.file_path,'\',FH3_data.sim_date,'\',FH3_data.section_name,'.csv');
+FH3_data.pull_file='Z3_PULL_original.csv';
+FH3_data.pull_saved_file='Z3_PULL_saved.csv';
+FH3_data.temp_SP_file='Z3_temp_SP.csv';
 FH3_data.input_signal_file=strcat(FH3_data.file_path,'\',FH3_data.sim_date,'\',FH3_data.section_name,'.csv');
 FH3_data.temp_prev_file=strcat(FH3_data.file_path,'\',FH3_data.sim_date,'\',FH3_data.section_name,'.csv');
 FH3_data.temp_measured_file=strcat(FH3_data.file_path,'\',FH3_data.sim_date,'\',FH3_data.section_name,'.csv');
 
 FH3_data.sim_mode=MD_constant_values.sim_mode_Z3;
+FH3_data.pull_uncertain=MD_constant_values.pull_uncertain_Z3;
 
 % FH 4
 
@@ -159,6 +165,7 @@ FH4_data.k_1=0.000033192813737;
 FH4_data.k_2=0.008788730063744;
 %}
 
+%{
 FH4_data.k_1=0.000033223648861;
 FH4_data.k_2=0.008794579259217;
 
@@ -179,7 +186,7 @@ FH4_data.temp_measured_file=strcat(FH4_data.file_path,'\',FH4_data.sim_date,'\',
 
 FH4_data.sim_mode=MD_constant_values.sim_mode_Z4;
 
-
+%}
 
 %forehearth_name={'FH11'};
 file_path=FH3_data.file_path;
@@ -195,7 +202,7 @@ for i=1:length(temp_files_names)
 end
 
 sections_len_Z3=[-2.0468 -1.0783 0 1 1.4643];
-sections_len_Z4=[-6.5412 -4.2190 -2.1536 0 1];
+%sections_len_Z4=[-6.5412 -4.2190 -2.1536 0 1];
 
 sections_len_=[0 1];
 
@@ -215,10 +222,10 @@ if sim_mode
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    FH4_section_sim=FH_section_sim(FH4_data);
+    %FH4_section_sim=FH_section_sim(FH4_data);
     %FH4_section_sim.define_init_temp_function(temp,sections_len_Z4);
-    FH4_section_sim.define_init_temp_function(temp(3:5),[-2.1536 0 1]);
-    FH4_section_sim.init();
+    %FH4_section_sim.define_init_temp_function(temp(3:5),[-2.1536 0 1]);
+    %FH4_section_sim.init();
         
     %interval=250;
     
@@ -235,8 +242,8 @@ FH_sections=FH3_section_sim;
 ident_section_Z3=MD_ident_section(3,{'FH11_Z2C_TEMP_PV','FH11_Z3_MIX_PRES_PV','FH11_Z3_CLN_VLV_POS_PV',...
      'FH11_Z3_TEMP_PV','FH11_Z3_TEMP_SP','FH11_PULL'},[0.0344 1.236],2272,FH3_data.file_path,MD_constant_values_Z3_PDE_sim);
 
-ident_section_Z4=MD_ident_section(2,{'FH11_Z3_TEMP_PV','FH11_Z4_MIX_PRES_PV',...
-    'FH11_Z4_TEMP_PV','FH11_Z4_TEMP_SP','FH11_PULL'},[0.0344 1.236],1055,FH4_data.file_path,MD_constant_values_Z4_PDE_sim);
+%ident_section_Z4=MD_ident_section(2,{'FH11_Z3_TEMP_PV','FH11_Z4_MIX_PRES_PV',...
+%    'FH11_Z4_TEMP_PV','FH11_Z4_TEMP_SP','FH11_PULL'},[0.0344 1.236],1055,FH4_data.file_path,MD_constant_values_Z4_PDE_sim);
 
  
  

@@ -9,7 +9,7 @@ switch(data_set)
     case 4
         
         pull_var_name='FH11_Z3_TEMP_PV';
-        file_path='plikiCSV_Panevezys\04_23\FH11\Z3.csv';
+        %file_path='plikiCSV_Panevezys\04_23\FH11\Z3.csv';
         
     case 7
         
@@ -22,22 +22,18 @@ switch(data_set)
         pull_values_saved=[114 95 100 105 112];
         
         if zone_nr==3
-            temp_SP_steps=[1 1000 2500 4500];
-            temp_SP_values=[1158 1168 1175 1183];
-            temp_SP_file='Z3_temp_SP.csv';
-            temp_SP_var_name='FH11_Z3_TEMP_SP';
+            temp_SP_steps=[1 400+500 820+500 2000-400+500 2500+100+500 3500-100+500 4300+500 5400+500];
+            temp_SP_values=[1184 1181 1178 1175 1170 1163 1162 1160];
         elseif zone_nr==4
             temp_SP_steps=[1 820 2000-400 2500+100 3500-100 4300 5400];
             temp_SP_values=[1181 1178 1175 1170 1165 1160 1155];
-            temp_SP_file='Z4_temp_SP.csv';
-            temp_SP_var_name='FH11_Z4_TEMP_SP';
         end
         
     case 8
         
         
         pull_var_name='FH11_PULL';
-        file_path='plikiCSV_Panevezys\05_31\FH11\Z3.csv';
+        %file_path='plikiCSV_Panevezys\05_31\FH11\Z3.csv';
         
         pull_steps_original=[1 2500-100 2800 3000-100 4800];
         pull_values_original=[74 55 58 67 63];
@@ -48,20 +44,24 @@ switch(data_set)
         if zone_nr==3
             temp_SP_steps=[1 1000 2500 4500];
             temp_SP_values=[1158 1168 1175 1183];
-            temp_SP_file='Z3_temp_SP.csv';
-            temp_SP_var_name='FH11_Z3_TEMP_SP';
         elseif zone_nr==4
             temp_SP_steps=[1 1020 2000-100 2500+100 3500-100 4300 5400];
             temp_SP_values=[1150 1160 1165 1170 1175 1179 1177];
-            temp_SP_file='Z4_temp_SP.csv';
-            temp_SP_var_name='FH11_Z4_TEMP_SP';
         end
         
 end
 
-original_pull_file='Z4_PULL_original.csv';
-saved_pull_file='Z4_PULL_saved.csv';
-
+if zone_nr==3
+    temp_SP_file='Z3_temp_SP.csv';
+    temp_SP_var_name='FH11_Z3_TEMP_SP';
+    original_pull_file='Z3_PULL_original.csv';
+    saved_pull_file='Z3_PULL_saved.csv';
+else
+    original_pull_file='Z4_PULL_original.csv';
+    saved_pull_file='Z4_PULL_saved.csv';
+    temp_SP_file='Z4_temp_SP.csv';
+    temp_SP_var_name='FH11_Z4_TEMP_SP';
+end
 
 
 

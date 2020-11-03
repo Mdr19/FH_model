@@ -169,8 +169,15 @@ if length(sys_output)>model_params.h
             % zmiana struktury current_sys_inputs
             
             sys_out_sim=0;
-            model_len=max(length(start_model),method_params.min_inputs_ident);
+            model_len=max(length(start_model),method_params.min_inputs_ident);      % uwzglednic sytuacje gdy dlugosc moelu mniejsza niz min liczba wejsc
 
+            
+            if method_params.alternative_model_method && model_len>=3
+                model_len=2;
+            end 
+                
+            
+            model_len
                 
             for i=1:model_len
                 

@@ -130,6 +130,7 @@ end
 
 MD_generate_signals_fnc(4,data_set,FH4_data.start_index,signals_len);
 
+%{
 FH3_data.k_1=0.000027935076328;
 FH3_data.k_2=0.011686309211677;
 FH3_data.k_3=0.000067270570993423;
@@ -154,6 +155,7 @@ FH3_data.temp_measured_file=strcat(FH3_data.file_path,'\',FH3_data.sim_date,'\',
 
 FH3_data.sim_mode=MD_constant_values.sim_mode_Z3;
 FH3_data.pull_uncertain=MD_constant_values.pull_uncertain_Z3;
+%}
 
 % FH 4
 
@@ -188,9 +190,9 @@ FH4_data.sim_mode=MD_constant_values.sim_mode_Z4;
 FH4_data.pull_uncertain=MD_constant_values.pull_uncertain_Z4;
 
 %forehearth_name={'FH11'};
-file_path=FH3_data.file_path;
-sim_date=FH3_data.sim_date;
-start_time=FH3_data.start_index;
+file_path=FH4_data.file_path;
+sim_date=FH4_data.sim_date;
+start_time=FH4_data.start_index;
 temp_files_names={'Z1','Z1','Z2','Z3','Z4'};
 variables_names={'WE_ZR_TEMP_PV','FH11_Z1_TEMP_PV','FH11_Z2C_TEMP_PV','FH11_Z3_TEMP_PV','FH11_Z4_TEMP_PV'};
 
@@ -200,7 +202,7 @@ for i=1:length(temp_files_names)
         variables_names(i),start_time,start_time,0,MD_constant_values.FH_message_display);
 end
 
-sections_len_Z3=[-2.0468 -1.0783 0 1 1.4643];
+%sections_len_Z3=[-2.0468 -1.0783 0 1 1.4643];
 sections_len_Z4=[-6.5412 -4.2190 -2.1536 0 1];
 
 sections_len_=[0 1];
@@ -212,12 +214,11 @@ sections_len_=[0 1];
 if sim_mode
     
     
-    FH3_section_sim=FH_section_sim(FH3_data);
+    %FH3_section_sim=FH_section_sim(FH3_data);
     %FH3_section_sim.define_init_temp_function(temp,sections_len_Z3);
-    FH3_section_sim.define_init_temp_function(temp(2:4),[-1.0783 0 1]);
-    FH3_section_sim.init();
+    %FH3_section_sim.define_init_temp_function(temp(2:4),[-1.0783 0 1]);
+    %FH3_section_sim.init();
     
-    cnt_start=FH3_data.start_index;
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
@@ -226,6 +227,7 @@ if sim_mode
     FH4_section_sim.define_init_temp_function(temp(3:5),[-2.1536 0 1]);
     FH4_section_sim.init();
     
+    cnt_start=FH4_data.start_index;
     %interval=250;
     
 else
@@ -238,8 +240,8 @@ FH_sections=FH4_section_sim;
 
 
 
-ident_section_Z3=MD_ident_section(3,{'FH11_Z2C_TEMP_PV','FH11_Z3_MIX_PRES_PV','FH11_Z3_CLN_VLV_POS_PV',...
-    'FH11_Z3_TEMP_PV','FH11_Z3_TEMP_SP','FH11_PULL'},[0.0344 1.236],2272,FH3_data.file_path,MD_constant_values_Z3_PDE_sim);
+%ident_section_Z3=MD_ident_section(3,{'FH11_Z2C_TEMP_PV','FH11_Z3_MIX_PRES_PV','FH11_Z3_CLN_VLV_POS_PV',...
+%    'FH11_Z3_TEMP_PV','FH11_Z3_TEMP_SP','FH11_PULL'},[0.0344 1.236],2272,FH3_data.file_path,MD_constant_values_Z3_PDE_sim);
 
 ident_section_Z4=MD_ident_section(2,{'FH11_Z3_TEMP_PV','FH11_Z4_MIX_PRES_PV',...
     'FH11_Z4_TEMP_PV','FH11_Z4_TEMP_SP','FH11_PULL'},[0.0344 1.236],1055,FH4_data.file_path,MD_constant_values_Z4_PDE_sim);
@@ -291,7 +293,7 @@ for i=1:intervals_nr
                 ~isempty(ident_section_Z4.ident_models(ident_section_Z4.current_model_nr).intervals(end-1).interval_type)
             
             if FH4_data.sim_mode==2
-                ident_section_Z4.obtain_MPC_model(3,0.6,150,MD_constant_values.h_Z4);        %0.03
+                ident_section_Z4.obtain_MPC_model(3,0.6,150,MD_constant_values.h_Z4);        %0.03 bylo N=3
                 FH_get_MPC_model(ident_section_Z4,'Z4');                     
             end
                 

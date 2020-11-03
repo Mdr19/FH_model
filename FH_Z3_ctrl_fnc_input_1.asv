@@ -16,7 +16,7 @@ global time_temp;
 global input_signal_applied;
 global output_signal;
 
-%global first_time;
+global first_time;
 
 %global error_hist;
 
@@ -54,7 +54,7 @@ elseif (MD_constant_values.sim_mode_Z3==1) || isempty(MPC_model) || isempty(MPC_
     error=temp_SP(ceil(t(1)))-u(end);
     
     if time_temp<t(1)
-        %time_temp=t(1);
+        time_temp=t(1);
         
         if prev_SP==temp_SP(ceil(t(1)));
             E_temp=temp_SP(ceil(t(1)))-u(end);
@@ -82,7 +82,7 @@ elseif (MD_constant_values.sim_mode_Z3==1) || isempty(MPC_model) || isempty(MPC_
         disp(['Time: ' num2str(time_temp) ' error: ' num2str(error) ' integral: ' num2str(E_int.Z3) ' control signal: ' num2str(result(1))]);
         
         u_prev.Z3(1,:)=result(1);
-        %first_time=true;
+        first_time=true;
         
     else
         result=Kp*error+Ki*E_int.Z3;
@@ -184,7 +184,7 @@ elseif MD_constant_values.sim_mode_Z3==2 && MPC_model.Z3.control_signals(1)
             %input_signal_applied.Z3_input_2=[input_signal_applied.Z3_input_2; [t(1) u_prev.Z3(2)]];
             output_signal.Z3=[output_signal.Z3; [t(1) u(end)]];
             
-            %first_time=true;
+            first_time=true;
         end
         
     elseif time_temp<t(1) && t(1)>0
@@ -200,8 +200,8 @@ elseif MD_constant_values.sim_mode_Z3==2 && MPC_model.Z3.control_signals(1)
         h=MD_constant_values.h_Z3;         %0.03  0.02
         time_=time_temp:h:t(1);
         
-        %time_temp=t(1);
-        %first_time=true;
+        time_temp=t(1);
+        first_time=true;
         
         y_=interp1([output_signal.Z3(end,1) t(1)],[output_signal.Z3(end,2) u(end),],time_)-MPC_model.Z3.output_offset(1,:);
         sp_t=[time_(1) time_(end)];
@@ -244,7 +244,7 @@ elseif MD_constant_values.sim_mode_Z3==2 && MPC_model.Z3.control_signals(1)
     
 elseif MD_constant_values.sim_mode_Z3==2 && MPC_model.Z3.control_signals(2)
     
-   % PID for mix. press.
+   % PID for cln vlv
     
     if t(1)==0
         time_index=1;
@@ -258,14 +258,14 @@ elseif MD_constant_values.sim_mode_Z3==2 && MPC_model.Z3.control_signals(2)
     %error_disp=error;
     
     if time_temp<t(1)
-        %time_temp=t(1);
+        time_temp=t(1);
         
-        if ~isempty(input_signal_applied.Z3_input_1)   %prev_SP==temp_SP(ceil(t(1)));
+        if ~isempty(input_signal_applied.Z3_input_2)   %prev_SP==temp_SP(ceil(t(1)));
             E_temp=temp_SP(time_index)-u(end);
             if t(1)>1
                 %input_signal_applied.Z3_input_1
                 %input_signal_applied.Z3_input_2
-                E_int.Z3=E_int.Z3+E_temp*(time_index-input_signal_applied.Z3_input_1(end,1));
+                E_int.Z3=E_int.Z3+E_temp*(time_index-input_signal_applied.Z3_input_2(end,1));
             end
         else
             %E_int=0;
@@ -274,10 +274,10 @@ elseif MD_constant_values.sim_mode_Z3==2 && MPC_model.Z3.control_signals(2)
         result=Kp_cln*error+Ki_cln*E_int.Z3;
         
         for i=1:length(result)
-            if result(i)>6
-                result(i)=6;
-            elseif result(i)<0.6
-                result(i)=0.6;
+            if result(i)>75
+                result(i)=75;
+            elseif result(i)<5
+                result(i)=5;
             end
         end
         
@@ -286,21 +286,21 @@ elseif MD_constant_values.sim_mode_Z3==2 && MPC_model.Z3.control_signals(2)
         
         disp(['PID mix press. Time: ' num2str(time_temp) ' error: ' num2str(error) ' integral: ' num2str(E_int.Z3) ' control signal: ' num2str(result(1))]);
         
-        u_prev.Z3(1,:)=result(1);
-        u_mpc.Z3(1,:)=result(1);
+        u_prev.Z3(2,:)=result(1);
+        u_mpc.Z3(2,:)=result(1);
         
-        input_signal_applied.Z3_input_1=[input_signal_applied.Z3_input_1; [t(1) result(1)]];
+        input_signal_applied.Z3_input_2=[input_signal_applied.Z3_input_2; [t(1) result(1)]];
                 
-        %first_time=true;
-        
+        first_time=false;
+
     else
         result=Kp_cln*error+Ki_cln*E_int.Z3;
         
         for i=1:length(result)
-            if result(i)>6
-                result(i)=6;
-            elseif result(i)<0.6
-                result(i)=0.6;
+            if result(i)>75
+                result(i)=75;
+            elseif result(i)<5
+                result(i)=75;
             end
         end
         

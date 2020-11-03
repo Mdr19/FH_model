@@ -11,7 +11,7 @@ classdef MD_constant_values_Z3_PDE_sim
         plot_new_model=1;
 
         %% linearization
-        threshold_lin=1e-1*0.4;          %1e-1*0.2 bylo dobrze   zwiekszone 5 razy 1e-1*0.3*10       11.05 bylo 1e-1*0.4*100
+        threshold_lin=1e-1*0.2;          %1e-1*0.2 bylo dobrze   zwiekszone 5 razy 1e-1*0.3*10       11.05 bylo 1e-1*0.4*100
         mean_interval_lin=100;
         h_lin=50;
         MFM_step=1;
@@ -28,16 +28,16 @@ classdef MD_constant_values_Z3_PDE_sim
         message_display=0;
         
         %% identification params
-        init_model_intervals=8; %*2+2; % by³o 6
+        init_model_intervals=6; %*2+2; % by³o 6
         new_model_intervals=4;           % by³o 4
         new_model_min_inputs=1;          % minimalna liczba wejsc z duzymi zmianami dla identyfikacji - bylo 1
         ident_intervals=4*2*2;           % by³o 16
-        min_inputs_ident=3;              % minimalna liczba wejsæ dla modelu
+        min_inputs_ident=2;              % minimalna liczba wejsæ dla modelu
         T_ob=MD_constant_values_Z3_PDE_sim.T_sim*2; % szerokœæ interwa³u obserwacji  %%!!!!!!!!!!!!!!!!!! 500 dla rzeczywistych (2*250)
         T_sim=250;                                               % szerokoœæ interwa³u syulacji
         model_change_threshold=MD_constant_values_Z3.T_sim;     % próg od którego re-identyfikacja - bylo MD_constant_values.T_sim*0.2
         var_threshold=0.01;              % minimalna wariancja dla wejœcia    % bylo 0.01
-        change_model=0;                  % update modelu podczas symulacji
+        change_model=1;                  % update modelu podczas symulacji
         model_reident=1;                 % re-identyfikacja modelu GS
         sum_sqr_difference=1;            % ró¿nica model-obiekt abs/sqr
         
@@ -51,7 +51,7 @@ classdef MD_constant_values_Z3_PDE_sim
         ident_mode=1;               % 0 - separate models, 1 - single model for controlled inputs
         
         %% uncertain pull
-        pull_uncertain=1;
+        pull_uncertain=0;
         
         
         %% parametry dla metody GS
@@ -65,7 +65,7 @@ classdef MD_constant_values_Z3_PDE_sim
       
         %% Parametry dla identyfikowanych modeli
           %% Parametry dla identyfikowanych modeli
-        ident_models_nr=10;                              % bylo 7
+        ident_models_nr=5;                              % bylo 7
 
         ident_models1_N=5;
         ident_models1_M=6;

@@ -152,6 +152,7 @@ for kk=1:N_sim;
     
     %X_hat_=X_hat_+(A*X_hat_+K_ob*(y(kk)-C*X_hat_))*h+B*udot*h
     
+    %{
     h2 = h/2; h3 = h/3; h6 = h3/2;
     
     dx1=(A*X_hat+K_ob*(y(kk)-C*X_hat))+B*udot;
@@ -160,9 +161,9 @@ for kk=1:N_sim;
     dx4=(A*(X_hat+h*dx3)+K_ob*(y(kk)-C*(X_hat+h*dx3)))+B*udot;
     
     X_hat=X_hat+h3*(dx2+dx3)+h6*(dx1+dx4);
+    %}
     
-    
-    %X_hat=X_hat+(A*X_hat+K_ob*(y(kk)-C*X_hat))*h+B*udot*h;
+    X_hat=X_hat+(A*X_hat+K_ob*(y(kk)-C*X_hat))*h+B*udot*h;
     
     
     u=u+udot*h;
@@ -170,7 +171,8 @@ for kk=1:N_sim;
     %gamma=[u_max-u;-u_min+u];
 end
 
-disp(['Single iter, init. error: '  num2str(num2str(y(1)-sp(1))) ', X_hat: ' num2str(X_hat')  ', Xsp: ' num2str(Xsp') ', ctrl. ' num2str(u)]);
+%disp(['Single iter, init. error: '  num2str(num2str(y(1)-sp(1))) ', X_hat: ' num2str(X_hat')  ', Xsp: ' num2str(Xsp')]);
+disp(['Single iter, init. error: '  num2str(num2str(y(1)-sp(1))) ', X_hat: ' num2str(X_hat')  ', Xsp: ' num2str(Xsp') ', ctrl. ' num2str(u')]);
 
 end
 
