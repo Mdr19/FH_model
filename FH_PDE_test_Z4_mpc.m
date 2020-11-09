@@ -298,7 +298,7 @@ for i=1:intervals_nr
                 ~isempty(ident_section_Z4.ident_models(ident_section_Z4.current_model_nr).intervals(end-1).interval_type)
             
             if FH4_data.sim_mode==2
-                ident_section_Z4.obtain_MPC_model(3,0.6,150,MD_constant_values.h_Z4);        %0.03 bylo N=3
+                ident_section_Z4.obtain_MPC_model(3,0.6,150/3,MD_constant_values.h_Z4);        %0.03 bylo N=3
                 %FH_get_MPC_model(ident_section_Z4,'Z4');      
                 FH_set_MPC_model(ident_section_Z4,'Z4');                     
             end

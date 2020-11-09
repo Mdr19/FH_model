@@ -76,6 +76,10 @@ elseif (MD_constant_values.sim_mode_Z3==1) || isempty(MPC_model) || isempty(MPC_
         u_prev.Z3(2,:)=result(1);
     end
     
+    if ~isempty(MPC_model.Z3_new) && MPC_model.Z3_new_model_set && MPC_model.Z3_new.control_signals(2)==1
+            u_mpc.Z3(2,:)=u_prev.Z3(2,:)-MPC_model.Z3_new.ctrl_offset(2,:);
+    end
+    
 elseif MD_constant_values.sim_mode_Z3==2 && sum(MPC_model.Z3.control_signals)==2
     
     result=u_mpc.Z3(2)+MPC_model.Z3.ctrl_offset(2);

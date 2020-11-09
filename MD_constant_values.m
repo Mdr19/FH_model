@@ -36,7 +36,7 @@ classdef MD_constant_values
         Z4_model_delay=50;
         
         PID_max_int=6;
-        PID_max_cln_int=25;
+        PID_max_cln_int=75;
         
         mix_press_max=6;
         mix_press_min=0.6;

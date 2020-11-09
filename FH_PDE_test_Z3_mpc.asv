@@ -3,7 +3,7 @@ close all
 clear all
 warning('off')
 
-global MPC_model
+
 
 %{
 date='02_17';

@@ -39,7 +39,7 @@ min_press=MD_constant_values.mix_press_min;
 max_int=MD_constant_values.PID_max_int;
 
 
-if ~isempty(MPC_model.Z4_new) && ~isempty(MPC_model.Z4_new_model_set) && MPC_model.Z4_new_model_set && t(1)>MD_constant_values.Z4_model_delay
+if ~isempty(MPC_model.Z4_new) && ~isempty(MPC_model.Z4_new_model_set) && MPC_model.Z4_new_model_set && t(1)>=MD_constant_values.Z4_model_delay
     MPC_model.Z4=MPC_model.Z4_new;
     MPC_model.Z4_new_model_set=false;
 end
