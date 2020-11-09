@@ -31,17 +31,29 @@ u=u_initial;
 %Deltau_max=[0.4;0.4];
 %Deltau_min=[-0.4;-0.4];
 
+max_press=MD_constant_values.mix_press_max;
+min_press=MD_constant_values.mix_press_min;
+
+max_cln_vlv=MD_constant_values.cln_vlv_max;
+min_cln_vlv=MD_constant_values.cln_vlv_min;
+
+max_press_d=MD_constant_values.mix_press_d;
+min_press_d=-MD_constant_values.mix_press_d;
+
+max_cln_vlv_d=MD_constant_values.cln_vlv_d;
+min_cln_vlv_d=-MD_constant_values.cln_vlv_d;
+
 %M=[Lzerot;-Lzerot];
-Deltau_max=[0.05]';          %0.02  0.05
-Deltau_min=[-0.05]';
-u_max(1,:)=6-u_offset(1);
-u_min(1,:)=0.6-u_offset(1);
+Deltau_max=max_press_d;          %0.02  0.05
+Deltau_min=min_press_d;
+u_max(1,:)=max_press-u_offset(1);
+u_min(1,:)=min_press-u_offset(1);
 
 if n_in==2
-    u_max(2,:)=75-u_offset(2);
-    u_min(2,:)=5-u_offset(2);
-    Deltau_max(2,:)=0.5;
-    Deltau_min(2,:)=-0.5;
+    u_max(2,:)=max_cln_vlv-u_offset(2);
+    u_min(2,:)=min_cln_vlv-u_offset(2);
+    Deltau_max(2,:)=max_cln_vlv_d;
+    Deltau_min(2,:)=min_cln_vlv_d;
 end
 
 %[Mu,Mu1]=Mucon(p,N,n_in,h,0.1);
@@ -152,7 +164,7 @@ for kk=1:N_sim;
     
     %X_hat_=X_hat_+(A*X_hat_+K_ob*(y(kk)-C*X_hat_))*h+B*udot*h
     
-    %{
+    
     h2 = h/2; h3 = h/3; h6 = h3/2;
     
     dx1=(A*X_hat+K_ob*(y(kk)-C*X_hat))+B*udot;
@@ -161,9 +173,9 @@ for kk=1:N_sim;
     dx4=(A*(X_hat+h*dx3)+K_ob*(y(kk)-C*(X_hat+h*dx3)))+B*udot;
     
     X_hat=X_hat+h3*(dx2+dx3)+h6*(dx1+dx4);
-    %}
     
-    X_hat=X_hat+(A*X_hat+K_ob*(y(kk)-C*X_hat))*h+B*udot*h;
+    
+    %X_hat=X_hat+(A*X_hat+K_ob*(y(kk)-C*X_hat))*h+B*udot*h;
     
     
     u=u+udot*h;

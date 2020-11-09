@@ -33,12 +33,6 @@ global u_mpc;
 global MPC_model
 
 
-max_press=MD_constant_values.mix_press_max;
-min_press=MD_constant_values.mix_press_min;
-
-max_int=MD_constant_values.PID_max_int;
-
-
 if ~isempty(MPC_model.Z4_new) && ~isempty(MPC_model.Z4_new_model_set) && MPC_model.Z4_new_model_set && t(1)>MD_constant_values.Z4_model_delay
     MPC_model.Z4=MPC_model.Z4_new;
     MPC_model.Z4_new_model_set=false;
@@ -68,6 +62,7 @@ elseif (MD_constant_values.sim_mode_Z4==1) || isempty(MPC_model.Z4)  %MPC_model.
     %error_disp=error;
     
     
+    
     if time_temp<t(1)
         time_temp=t(1);
         
@@ -75,12 +70,12 @@ elseif (MD_constant_values.sim_mode_Z4==1) || isempty(MPC_model.Z4)  %MPC_model.
             E_temp=temp_SP(ceil(t(1)))-u(end);
             if t(1)>1
                 
-                if E_temp>0 && E_int.Z4*Ki>max_int
+                if error>0 && E_int.Z4*Ki>max_int
                     E_int.Z4=max_int/Ki;
                 else
+ 
                     E_int.Z4=E_int.Z4+E_temp*(t(1)-input_signal_applied.Z4_input_1(end,1));
                 end
-                
             end
         else
             %E_int=0;
@@ -90,10 +85,10 @@ elseif (MD_constant_values.sim_mode_Z4==1) || isempty(MPC_model.Z4)  %MPC_model.
         result=Kp*error+Ki*E_int.Z4;
         
         for i=1:length(result)
-            if result(i)>max_press
-                result(i)=max_press;
-            elseif result(i)<min_press
-                result(i)=min_press;
+            if result(i)>6
+                result(i)=6;
+            elseif result(i)<0.6
+                result(i)=0.6;
             end
         end
         
@@ -113,10 +108,10 @@ elseif (MD_constant_values.sim_mode_Z4==1) || isempty(MPC_model.Z4)  %MPC_model.
         result=Kp*error+Ki*E_int.Z4;
         
         for i=1:length(result)
-            if result(i)>max_press
-                result(i)=max_press;
-            elseif result(i)<min_press
-                result(i)=min_press;
+            if result(i)>6
+                result(i)=6;
+            elseif result(i)<0.6
+                result(i)=0.6;
             end
         end
         

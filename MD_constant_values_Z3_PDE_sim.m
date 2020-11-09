@@ -7,7 +7,7 @@ classdef MD_constant_values_Z3_PDE_sim
         pull_signal_len=100;
         
         %% Wykresy dla reidentyfikacji
-        plot_reident=1;
+        plot_reident=0;
         plot_new_model=1;
 
         %% linearization
@@ -37,9 +37,13 @@ classdef MD_constant_values_Z3_PDE_sim
         T_sim=250;                                               % szerokoœæ interwa³u syulacji
         model_change_threshold=MD_constant_values_Z3.T_sim;     % próg od którego re-identyfikacja - bylo MD_constant_values.T_sim*0.2
         var_threshold=0.01;              % minimalna wariancja dla wejœcia    % bylo 0.01
+        corr_threshold=0.5;
         change_model=1;                  % update modelu podczas symulacji
-        model_reident=1;                 % re-identyfikacja modelu GS
+        model_reident=0;                 % re-identyfikacja modelu GS
         sum_sqr_difference=1;            % ró¿nica model-obiekt abs/sqr
+        
+        %sprawdznie interwa³ów (wariancja/korelacja)
+        var_corr_method=1;               % 0 - var, 1 - corr
         
         %identyfikacja dla nowego punktu pracy
         alternative_model_method=1;            % 0 - nowy interwal zerowy pierwszy, 1 - nowy interwa³ zerowy w srodku

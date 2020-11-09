@@ -51,8 +51,8 @@ T=MD_constant_values.T_sim; %1000
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-section_nr=4;           % 3 lub 4
-data_nr=503;
+section_nr=3;           % 3 lub 4
+data_nr=207;
 
 if section_nr==3
     
@@ -80,7 +80,7 @@ if section_nr==3
         case 102
             
             filename='plikiCSV_Panevezys\FH11\05_31\Z3.csv';'rt'; % 20000 35000
-            t_start=27000+250;
+            t_start=27000;
             t_end=36000-2000;
             
             ident_section=MD_ident_section(3,{'FH11_Z2C_TEMP_PV','FH11_Z3_MIX_PRES_PV','FH11_Z3_CLN_VLV_POS_PV',...
@@ -345,7 +345,7 @@ elseif section_nr==4
         case 102
             
             filename='plikiCSV_Panevezys\FH11\05_31\Z4.csv';'rt'; % 20000 35000
-            t_start=27000+250;
+            t_start=27000;
             t_end=36000-2000;
             
             ident_section=MD_ident_section(2,{'FH11_Z3_TEMP_PV','FH11_Z4_MIX_PRES_PV',...

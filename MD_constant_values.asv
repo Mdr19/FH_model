@@ -35,16 +35,7 @@ classdef MD_constant_values
         Z3_model_delay=50;
         Z4_model_delay=50;
         
-        PID_max_int=6;
-        PID_max_cln_int=25;
-        
-        mix_press_max=6;
-        mix_press_min=0.6;
-        mix_press_d=0.05;
-        
-        cln_vlv_max=75;
-        cln_vlv_min=5;
-        cln_vlv_d=0.05;
+        P
         
         %mpc_tau=0.1;
         

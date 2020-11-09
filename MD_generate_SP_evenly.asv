@@ -1,8 +1,17 @@
-function MD_generate_signals_fnc(zone_nr,data_set,start_cnt,signal_len)
+function MD_generate_SP_evenly(start_cnt,end_cnt,elements_nr,start_SP,end_SP)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
+delta_t=(end_cnt-start_cnt)/elements_nr;
+delta_SP=(end_SP-start_SP)/elements_nr;
 
+temp_SP_steps=zeros();
+temp_SP_values=[];
+
+
+for i=1:elements_nr
+    temp_SP_values(i)=
+end
 
 switch(data_set)
     
@@ -22,14 +31,11 @@ switch(data_set)
         pull_values_saved=[114 95 100 105 112];
         
         if zone_nr==3
-            %temp_SP_steps=[1 400+500 820+500 2000-400+500 2500+100+500 3500-100+500 4300+500 5400+500];
-            %temp_SP_values=[1184 1181 1178 1175 1170 1163 1162 1160];
-            
-            [temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(500,5900,8,1184,1160);
-            
+            temp_SP_steps=[1 400+500 820+500 2000-400+500 2500+100+500 3500-100+500 4300+500 5400+500];
+            temp_SP_values=[1184 1181 1178 1175 1170 1163 1162 1160];
         elseif zone_nr==4
-            %temp_SP_steps=[1 820 2000-400 2500+100 3500-100 4300 5400];
-            %temp_SP_values=[1181 1178 1175 1170 1165 1160 1155];
+            temp_SP_steps=[1 820 2000-400 2500+100 3500-100 4300 5400];
+            temp_SP_values=[1181 1178 1175 1170 1165 1160 1155];
         end
         
     case 8
@@ -45,11 +51,8 @@ switch(data_set)
         pull_values_saved=[74 55 67 63];
         
         if zone_nr==3
-            %temp_SP_steps=[1 1000 2500 4500];
-            %temp_SP_values=[1158 1168 1175 1183];
-            
-            [temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(500,5000,5,1158,1183);
-            
+            temp_SP_steps=[1 1000 2500 4500];
+            temp_SP_values=[1158 1168 1175 1183];
         elseif zone_nr==4
             temp_SP_steps=[1 1020 2000-100 2500+100 3500-100 4300 5400];
             temp_SP_values=[1150 1160 1165 1170 1175 1179 1177];

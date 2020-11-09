@@ -942,6 +942,7 @@ classdef MD_ident_section < handle
                 
                 disp('Obtaining MPC model');
                 
+                tic
                 if obj.ident_models(obj.current_model_nr).inputs_to_ident(1)==0
                     start_model_nr=1;
                 else
@@ -955,8 +956,8 @@ classdef MD_ident_section < handle
                     Cc(1,size(Ac,1))=1;
                        
                     X0=obj.current_model.A*obj.current_initial_state'+...
-                    obj.current_model.B(:,start_model_nr:end)*(obj.signals_intervals(end).original_signals(start_model_nr:start_model_nr+size(obj.current_model.B,start_model_nr)-start_model_nr,end)-...
-                    obj.ident_models(obj.current_model_nr).offset_value(start_model_nr:start_model_nr+size(obj.current_model.B,start_model_nr)-start_model_nr)');
+                    obj.current_model.B(:,start_model_nr:end)*(obj.signals_intervals(end).original_signals(start_model_nr:start_model_nr+size(obj.current_model.B,2)-start_model_nr,end)-...
+                    obj.ident_models(obj.current_model_nr).offset_value(start_model_nr:start_model_nr+size(obj.current_model.B,2)-start_model_nr)');
                     X0=[X0; obj.signals_intervals(end).original_signals(3,end)-...
                     obj.ident_models(obj.current_model_nr).offset_value(end)];
     
@@ -1019,7 +1020,9 @@ classdef MD_ident_section < handle
 
                 [obj.MPC_model.Omega,obj.MPC_model.Psi]=cmpc(A,B,p,N,Tp,Q,R);
 
-                obj.MPC_model.ctrl_offset=obj.ident_models(obj.current_model_nr).offset_value(2:2+size(B,2)-1);
+                toc
+                
+                obj.MPC_model.ctrl_offset=obj.ident_models(obj.current_model_nr).offset_value(start_model_nr:start_model_nr+size(B,2)-1);
                 obj.MPC_model.output_offset=obj.ident_models(obj.current_model_nr).offset_value(end);
                                 
                 obj.MPC_model.control_signals=obj.ident_models(obj.current_model_nr).inputs_to_ident(2:end);
@@ -1281,8 +1284,19 @@ classdef MD_ident_section < handle
         function define_model_inputs_intervals(obj)
             obj.signals_intervals(obj.current_interval).model_inputs=zeros(1,obj.inputs_nr);
             for i=1:obj.inputs_nr
-                if var(obj.signals_intervals(obj.current_interval).original_signals(i,:))>obj.ident_method_params.var_threshold;
-                    obj.signals_intervals(obj.current_interval).model_inputs(i)=1;
+                
+                disp(['Var is equal ' num2str(var(obj.signals_intervals(obj.current_interval).original_signals(i,:))) ' Cor is equal '...
+                num2str(corr(obj.signals_intervals(obj.current_interval).original_signals(i,:)', obj.signals_intervals(obj.current_interval).original_signals(end-2,:)'))]);
+                
+                if obj.ident_method_params.var_corr_method==0
+                    if var(obj.signals_intervals(obj.current_interval).original_signals(i,:))>obj.ident_method_params.var_threshold;
+                        obj.signals_intervals(obj.current_interval).model_inputs(i)=1;
+                    end
+                else
+                    if abs(corr(obj.signals_intervals(obj.current_interval).original_signals(i,:)', obj.signals_intervals(obj.current_interval).original_signals(end-2,:)'))>...
+                            obj.ident_method_params.corr_threshold;
+                        obj.signals_intervals(obj.current_interval).model_inputs(i)=1;
+                    end
                 end
             end
         end
@@ -1470,6 +1484,7 @@ classdef MD_ident_section < handle
                                     [obj.current_model, obj.current_model_params]=MD_model_ident_LSM_GS4(input_signals_ident,output_signal_ident,obj.ident_method_params,obj.current_model_nr*100);
                                 case 1
                                     %[obj.current_model, obj.current_model_params]=MD_model_ident_LSM_GS4(input_signals_ident,output_signal_ident,obj.current_model_nr*100);
+                                    ident_offset_intervals
                                     [obj.current_model, obj.current_model_params]=MD_model_ident_LSM_GS5(input_signals_ident,output_signal_ident,obj.ident_method_params,obj.current_model_nr*100);
                                 otherwise
                                     [obj.current_model, obj.current_model_params]=MD_model_ident_LSM_GS5(input_signals_ident,output_signal_ident,obj.ident_method_params,obj.current_model_nr*100);

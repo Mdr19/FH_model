@@ -955,8 +955,8 @@ classdef MD_ident_section < handle
                     Cc(1,size(Ac,1))=1;
                        
                     X0=obj.current_model.A*obj.current_initial_state'+...
-                    obj.current_model.B(:,start_model_nr:end)*(obj.signals_intervals(end).original_signals(start_model_nr:start_model_nr+size(obj.current_model.B,start_model_nr)-2,end)-...
-                    obj.ident_models(obj.current_model_nr).offset_value(start_model_nr:start_model_nr+size(obj.current_model.B,start_model_nr)-2)')';
+                    obj.current_model.B(:,start_model_nr:end)*(obj.signals_intervals(end).original_signals(start_model_nr:start_model_nr+size(obj.current_model.B,2)-start_model_nr,end)-...
+                    obj.ident_models(obj.current_model_nr).offset_value(start_model_nr:start_model_nr+size(obj.current_model.B,2)-start_model_nr)');
                     X0=[X0; obj.signals_intervals(end).original_signals(3,end)-...
                     obj.ident_models(obj.current_model_nr).offset_value(end)];
     
@@ -1019,7 +1019,7 @@ classdef MD_ident_section < handle
 
                 [obj.MPC_model.Omega,obj.MPC_model.Psi]=cmpc(A,B,p,N,Tp,Q,R);
 
-                obj.MPC_model.ctrl_offset=obj.ident_models(obj.current_model_nr).offset_value(2:2+size(B,2)-1);
+                obj.MPC_model.ctrl_offset=obj.ident_models(obj.current_model_nr).offset_value(start_model_nr:start_model_nr+size(B,2)-1);
                 obj.MPC_model.output_offset=obj.ident_models(obj.current_model_nr).offset_value(end);
                                 
                 obj.MPC_model.control_signals=obj.ident_models(obj.current_model_nr).inputs_to_ident(2:end);
@@ -1282,6 +1282,8 @@ classdef MD_ident_section < handle
             obj.signals_intervals(obj.current_interval).model_inputs=zeros(1,obj.inputs_nr);
             for i=1:obj.inputs_nr
                 if var(obj.signals_intervals(obj.current_interval).original_signals(i,:))>obj.ident_method_params.var_threshold;
+                    disp(['Var is equal ' num2str(var(obj.signals_intervals(obj.current_interval).original_signals(i,:))) ' Cor is equal '...
+                        num2str(corr(obj.signals_intervals(obj.current_interval).original_signals(i,:)', obj.signals_intervals(obj.current_interval).original_signals(end-3,:)))]);
                     obj.signals_intervals(obj.current_interval).model_inputs(i)=1;
                 end
             end

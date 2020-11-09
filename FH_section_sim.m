@@ -268,6 +268,8 @@ classdef FH_section_sim < handle
             global temp_SP;
             
             global E_int;
+            global E_int_cln;
+
             global E_temp;
             global time_temp;
             
@@ -382,6 +384,7 @@ classdef FH_section_sim < handle
                 
                 if obj.current_interval==1
                     E_int.(obj.section_name)=0;
+                    E_int_cln.(obj.section_name)=0;
                     E_temp=0;
                     time_temp=0;
                     

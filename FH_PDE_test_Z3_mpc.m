@@ -42,7 +42,7 @@ FH3_data.k_4=0.002548259469871;
 
 % 7 - spadek
 
-data_set=7;
+data_set=8;
 
 switch data_set
     case 1
@@ -257,7 +257,8 @@ interval=MD_constant_values.T_sim;
 
 
 
-tic
+%tic
+tStart = clock;
 for i=1:intervals_nr
     
     if sim_mode
@@ -265,9 +266,8 @@ for i=1:intervals_nr
         %FH_sections(2).perform_simulation(cnt_start+i*interval);
         %FH_sections(2).perform_simulation_multizone(cnt_start+i*interval,FH_sections(1));
     end
-    
-    
-    if i>3
+        
+    if i>2
         
         %{
         ident_section_Z3.define_interval_plant(FH_sections(1),i);
@@ -304,7 +304,10 @@ for i=1:intervals_nr
     %}
     
 end
-toc
+%toc
+tEnd = clock;
+disp(['Elapsed time is ' num2str(etime(tEnd,tStart)) ' s']);
+
 
 FH_sections(1).plot_results(12);
 %FH_sections(2).plot_results(13);

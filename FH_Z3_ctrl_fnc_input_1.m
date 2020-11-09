@@ -10,6 +10,8 @@ global temp_SP;
 global prev_SP;
 
 global E_int;
+global E_int_cln;
+
 global E_temp;
 global time_temp;
 
@@ -23,11 +25,20 @@ global output_signal;
 global Kp;
 global Ki;
 
+global Ki_cln;
+
 global u_prev;
 global state_prev;
 global u_mpc;
 
 global MPC_model
+
+
+max_press=MD_constant_values.mix_press_max;
+min_press=MD_constant_values.mix_press_min;
+
+max_int=MD_constant_values.PID_max_int;
+max_int_cln=MD_constant_values.PID_max_cln_int;
 
 if (MD_constant_values.sim_mode_Z3==0)
     
@@ -52,14 +63,27 @@ elseif (MD_constant_values.sim_mode_Z3==1) || isempty(MPC_model) || isempty(MPC_
     end
     
     error=temp_SP(ceil(t(1)))-u(end);
-    
+        
     if time_temp<t(1)
         %time_temp=t(1);
         
         if prev_SP==temp_SP(ceil(t(1)));
             E_temp=temp_SP(ceil(t(1)))-u(end);
             if t(1)>1
-                E_int.Z3=E_int.Z3+E_temp*(t(1)-input_signal_applied.Z3_input_1(end,1));
+                
+                if E_temp>0 && E_int.Z3*Ki>max_int
+                    E_int.Z3=max_int/Ki;
+                else
+                    E_int.Z3=E_int.Z3+E_temp*(t(1)-input_signal_applied.Z3_input_1(end,1));
+                end
+                
+                if E_temp>0 && E_int_cln.Z3*Ki_cln>max_int_cln
+                    E_int_cln.Z3=max_int_cln/Ki_cln;
+                else
+                    E_int_cln.Z3=E_int_cln.Z3+E_temp*(t(1)-input_signal_applied.Z3_input_1(end,1));
+                end
+                
+                
             end
         else
             %E_int=0;
@@ -69,10 +93,10 @@ elseif (MD_constant_values.sim_mode_Z3==1) || isempty(MPC_model) || isempty(MPC_
         result=Kp*error+Ki*E_int.Z3;
         
         for i=1:length(result)
-            if result(i)>6
-                result(i)=6;
-            elseif result(i)<0.6
-                result(i)=0.6;
+            if result(i)>max_press
+                result(i)=max_press;
+            elseif result(i)<min_press
+                result(i)=min_press;
             end
         end
         
@@ -88,10 +112,10 @@ elseif (MD_constant_values.sim_mode_Z3==1) || isempty(MPC_model) || isempty(MPC_
         result=Kp*error+Ki*E_int.Z3;
         
         for i=1:length(result)
-            if result(i)>6
-                result(i)=6;
-            elseif result(i)<0.6
-                result(i)=0.6;
+            if result(i)>max_press
+                result(i)=max_press;
+            elseif result(i)<min_press
+                result(i)=min_press;
             end
         end
         
@@ -180,7 +204,7 @@ elseif MD_constant_values.sim_mode_Z3==2 && MPC_model.Z3.control_signals(1)
         state_prev.Z3=MPC_model.Z3.X0;
         
         if isempty(output_signal.Z3)
-            input_signal_applied.Z3_input_1=[input_signal_applied.Z3_input_1; [t(1) u_prev.Z3(1)]];
+            input_signal_applied.Z3_input_1=[t(1) u_prev.Z3(1,:)];
             %input_signal_applied.Z3_input_2=[input_signal_applied.Z3_input_2; [t(1) u_prev.Z3(2)]];
             output_signal.Z3=[output_signal.Z3; [t(1) u(end)]];
             
@@ -199,10 +223,7 @@ elseif MD_constant_values.sim_mode_Z3==2 && MPC_model.Z3.control_signals(1)
         
         h=MD_constant_values.h_Z3;         %0.03  0.02
         time_=time_temp:h:t(1);
-        
-        %time_temp=t(1);
-        %first_time=true;
-        
+                
         y_=interp1([output_signal.Z3(end,1) t(1)],[output_signal.Z3(end,2) u(end),],time_)-MPC_model.Z3.output_offset(1,:);
         sp_t=[time_(1) time_(end)];
         
@@ -212,10 +233,7 @@ elseif MD_constant_values.sim_mode_Z3==2 && MPC_model.Z3.control_signals(1)
         [u_mpc.Z3(1,:), MPC_model.Z3.X0]=MD_calculate_MPC_control_signal(MPC_model.Z3.A,MPC_model.Z3.B,...
             MPC_model.Z3.C,MPC_model.Z3.K_ob,MPC_model.Z3.Omega,MPC_model.Z3.Psi,...
             MPC_model.Z3.Lzerot,MPC_model.Z3.M,h,u_mpc.Z3(1,:),MPC_model.Z3.X0,MPC_model.Z3.ctrl_offset,y_,sp_);
-        
-        %disp(['Control calulated: ' ]);
-        %u_mpc.Z3
-        
+                
         output_signal.Z3=[output_signal.Z3; [t(1) u(end)]];
         
         if isnan(u_mpc.Z3(1,:))
@@ -225,14 +243,11 @@ elseif MD_constant_values.sim_mode_Z3==2 && MPC_model.Z3.control_signals(1)
         if isnan(MPC_model.Z3.X0)
             MPC_model.Z3.X0=state_prev.Z3;
         end
-        
-        %result=u_mpc.Z3+MPC_model.Z3.ctrl_offset';
-        
+                
         u_prev.Z3(1,:)=u_mpc.Z3(1,:)+MPC_model.Z3.ctrl_offset(1,:)';                           % z offsetem
         state_prev.Z3=MPC_model.Z3.X0;
         
         input_signal_applied.Z3_input_1=[input_signal_applied.Z3_input_1; [t(1) u_prev.Z3(1)]];
-        %input_signal_applied.Z3_input_2=[input_signal_applied.Z3_input_2; [t(1) u_prev.Z3(2)]];
         
         result=u_mpc.Z3(1,:)+MPC_model.Z3.ctrl_offset(1,:);
         
@@ -257,27 +272,47 @@ elseif MD_constant_values.sim_mode_Z3==2 && MPC_model.Z3.control_signals(2)
     error=temp_SP(time_index)-u(end);
     %error_disp=error;
     
-    if time_temp<t(1)
-        %time_temp=t(1);
+     if t(1)==0
+    
+         if isempty(input_signal_applied.Z3_input_1)
+            input_signal_applied.Z3_input_1=[t(1) u_prev.Z3(1,:)];
+            %input_signal_applied.Z3_input_2=[input_signal_applied.Z3_input_2; [t(1) u_prev.Z3(2)]];
+         end
         
+         result=u_prev.Z3(1,:);
+    
+    
+    elseif time_temp<t(1)
+        %time_temp=t(1);
+                
         if ~isempty(input_signal_applied.Z3_input_1)   %prev_SP==temp_SP(ceil(t(1)));
             E_temp=temp_SP(time_index)-u(end);
             if t(1)>1
-                %input_signal_applied.Z3_input_1
-                %input_signal_applied.Z3_input_2
-                E_int.Z3=E_int.Z3+E_temp*(time_index-input_signal_applied.Z3_input_1(end,1));
+                
+                if E_temp>0 && E_int.Z3*Ki>max_int
+                    E_int.Z3=max_int/Ki;
+                else
+                    E_int.Z3=E_int.Z3+E_temp*(t(1)-input_signal_applied.Z3_input_1(end,1));
+                end
+                
+                if E_temp>0 && E_int_cln.Z3*Ki_cln>max_int_cln
+                    E_int_cln.Z3=max_int_cln/Ki_cln;
+                else
+                    E_int_cln.Z3=E_int_cln.Z3+E_temp*(t(1)-input_signal_applied.Z3_input_1(end,1));
+                end
+                
             end
         else
             %E_int=0;
         end
         
-        result=Kp_cln*error+Ki_cln*E_int.Z3;
+        result=Kp*error+Ki*E_int.Z3;
         
         for i=1:length(result)
-            if result(i)>6
-                result(i)=6;
-            elseif result(i)<0.6
-                result(i)=0.6;
+            if result(i)>max_press
+                result(i)=max_press;
+            elseif result(i)<min_press
+                result(i)=min_press;
             end
         end
         
@@ -294,13 +329,13 @@ elseif MD_constant_values.sim_mode_Z3==2 && MPC_model.Z3.control_signals(2)
         %first_time=true;
         
     else
-        result=Kp_cln*error+Ki_cln*E_int.Z3;
+        result=Kp*error+Ki*E_int.Z3;
         
         for i=1:length(result)
-            if result(i)>6
-                result(i)=6;
-            elseif result(i)<0.6
-                result(i)=0.6;
+            if result(i)>max_press
+                result(i)=max_press;
+            elseif result(i)<min_press
+                result(i)=min_press;
             end
         end
         

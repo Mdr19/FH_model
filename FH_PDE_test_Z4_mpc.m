@@ -3,6 +3,8 @@ close all
 clear all
 warning('off')
 
+global MPC_model
+
 %{
 date='02_17';
 k_1=0.000035308009951444;
@@ -210,6 +212,8 @@ sections_len_=[0 1];
 %start_index=5000;%+510;
 %end_index=18000;
 
+MPC_model.Z4=[];
+MPC_model.Z4_new=[];
 
 if sim_mode
     
@@ -258,7 +262,8 @@ interval=MD_constant_values.T_sim;
 
 
 
-tic
+%tic
+tStart = clock;
 for i=1:intervals_nr
     
     if sim_mode
@@ -294,7 +299,8 @@ for i=1:intervals_nr
             
             if FH4_data.sim_mode==2
                 ident_section_Z4.obtain_MPC_model(3,0.6,150,MD_constant_values.h_Z4);        %0.03 bylo N=3
-                FH_get_MPC_model(ident_section_Z4,'Z4');                     
+                %FH_get_MPC_model(ident_section_Z4,'Z4');      
+                FH_set_MPC_model(ident_section_Z4,'Z4');                     
             end
                 
         elseif ~isempty(ident_section_Z4.MPC_model)
@@ -305,7 +311,11 @@ for i=1:intervals_nr
     %}
     
 end
-toc
+
+tEnd = clock;
+disp(['Elapsed time is ' num2str(etime(tEnd,tStart)) ' s']);
+
+%toc
 
 FH_sections(1).plot_results(12);
 %FH_sections(2).plot_results(13);

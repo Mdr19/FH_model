@@ -1,4 +1,4 @@
-function FH_get_MPC_model( ident_section,section_name )
+function FH_set_MPC_model( ident_section,section_name )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 %global DC_model
@@ -8,15 +8,17 @@ function FH_get_MPC_model( ident_section,section_name )
 %global control_offset
 
 global MPC_model
+%global MPC_model_Z4_new_model_set
 %global X_hat;
 %global X_hat_;
 %global u_mpc;
 
-if ~isempty(ident_section.MPC_model)
+if ~isempty(ident_section.MPC_model)  
     
     disp('Obtaining the current MPC model');
     
-    MPC_model.(section_name)=ident_section.MPC_model;
+    MPC_model.(strcat(section_name,'_new'))=ident_section.MPC_model;    
+    MPC_model.(strcat(section_name,'_new_model_set'))=true;
     
     %u_mpc.(section_name)=0;
     
