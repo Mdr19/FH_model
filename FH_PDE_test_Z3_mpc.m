@@ -26,7 +26,7 @@ save_mode=0;
 %FH_data.k_1=0.000035320876450;                   %0.000034735233678004;
 %FH_data.k_2=0.012490048627167;                   %0.000813764203449597*15;
 
-sample_time=10;
+sample_time=5;
 elements_nr=5;
 
 
@@ -101,10 +101,10 @@ switch data_set
         %intervals_nr=30; %7; %28;
         
         FH3_data.sim_date='05_31';
-        FH3_data.start_index=27000;
+        FH3_data.start_index=27000+1000;
         
         FH4_data.sim_date='05_31';
-        FH4_data.start_index=27000;
+        %FH4_data.start_index=27000+1000;
 
         intervals_nr=24+4; %50;%+25; %45
         signals_len=7000;
@@ -300,7 +300,7 @@ for i=1:intervals_nr
             %ident_section_Z3.obtain_MPC_model(0.03);        %bylo 0.03
             ident_section_Z3.obtain_MPC_model(5,0.6,150,MD_constant_values.h_Z3);        %0.03
             %FH_get_MPC_model(ident_section_Z3,'Z3');
-            FH_set_MPC_model(ident_section_Z3,'Z3');
+            FH_set_MPC_model(ident_section_Z3,'Z3',0);
 
             
         elseif ~isempty(ident_section_Z3.MPC_model)

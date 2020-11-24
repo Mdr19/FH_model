@@ -29,7 +29,7 @@ classdef MD_constant_values_Z4_PDE_sim
         message_display=0;
         
         %% identification params
-        init_model_intervals=8-2; %*2+2; % by³o 6
+        init_model_intervals=8-2+2; %*2+2; % by³o 6
         new_model_intervals=4;           % by³o 4
         new_model_min_inputs=2;          % minimalna liczba wejsc z duzymi zmianami dla identyfikacji - bylo 1
         ident_intervals=4*2*2;           % by³o 16
@@ -40,7 +40,7 @@ classdef MD_constant_values_Z4_PDE_sim
         var_threshold=0.01;              % minimalna wariancja dla wejœcia    % bylo 0.01
         corr_threshold=0.5;
         change_model=1;                  % update modelu podczas symulacji
-        model_reident=1;                 % re-identyfikacja modelu GS
+        model_reident=0;                 % re-identyfikacja modelu GS
         sum_sqr_difference=1;            % ró¿nica model-obiekt abs/sqr
         
         %% sprawdznie interwa³ów (wariancja/korelacja)

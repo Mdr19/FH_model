@@ -537,6 +537,21 @@ classdef FH_section_sim < handle
                             obj.applied_controller(obj.current_interval).input_2='MPC';
                     end
                     
+                    
+                    %{
+                     if without_cln_vlv && ~isempty(MPC_model.(strcat(obj.section_name,'_new_model_set'))) %&& MPC_model.(strcat(obj.section_name,'_new_model_set'))
+                          %obj.applied_controller(obj.current_interval).input_2='MPC';
+                          obj.applied_controller(obj.current_interval).input_1='MPC';
+                          
+                    elseif without_cln_vlv && ~isempty(MPC_model.(strcat(obj.section_name,'_new_model_set'))) && MPC_model.(strcat(obj.section_name,'_new_model_set'))
+                          obj.applied_controller(obj.current_interval).input_1='MPC';
+                     elseif ~isempty(MPC_model.(strcat(obj.section_name,'_new_model_set'))) && ...
+                            MPC_model.(strcat(obj.section_name,'_new_model_set')) && sum(MPC_model.(strcat(obj.section_name,'_new')).control_signals)==2
+                            obj.applied_controller(obj.current_interval).input_1='MPC';
+                            obj.applied_controller(obj.current_interval).input_2='MPC';
+                    end
+                    %}
+                    
                 end
                 
             end

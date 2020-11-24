@@ -6,7 +6,7 @@ classdef MD_constant_values
         
         %% Parametry symulacji dla PDE
         sim_mode=0;                      % 0 - czytanie danych historycznych, 1 - symulacja z dzialaniem regulatora, 2 - tryb mieszany
-        sim_mode_Z3=2;
+        sim_mode_Z3=2;                   % 0 - , 1- PID, 2 - MPC
         sim_mode_Z4=2;
         
         pull_uncertain_Z3=0;
@@ -29,8 +29,8 @@ classdef MD_constant_values
         Ki_cln=0.1;
         
         %% MPC model params
-        h_Z3=0.01;      %0.0005       0.01
-        h_Z4=0.001;      %0.01
+        h_Z3=0.01;      %0.0002       0.01
+        h_Z4=0.01;      %0.01
         
         Z3_model_delay=50;
         Z4_model_delay=50;
@@ -40,11 +40,17 @@ classdef MD_constant_values
         
         mix_press_max=6;
         mix_press_min=0.6;
-        mix_press_d=0.05;
+        mix_press_d=0.05*3; %10/10;
         
         cln_vlv_max=75;
         cln_vlv_min=5;
-        cln_vlv_d=0.05;
+        cln_vlv_d=MD_constant_values.mix_press_d;
+        
+        %% Prev section params
+        
+        Z3_prev_section_corr=0;
+        Z4_prev_section_corr=1;
+        Z4_prev_delta=2;
         
         %mpc_tau=0.1;
         

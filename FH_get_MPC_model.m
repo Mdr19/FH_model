@@ -1,4 +1,4 @@
-function FH_get_MPC_model( ident_section,section_name )
+function FH_get_MPC_model( ident_section,section_name)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 %global DC_model
@@ -17,6 +17,12 @@ if ~isempty(ident_section.MPC_model)
     disp('Obtaining the current MPC model');
     
     MPC_model.(section_name)=ident_section.MPC_model;
+    
+    if MPC_model.(section_name)
+        MPC_model.(section_name)=ident_section.MPC_model;
+    end
+    
+
     
     %u_mpc.(section_name)=0;
     

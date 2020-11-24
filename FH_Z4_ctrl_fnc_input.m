@@ -7,6 +7,8 @@ function [ result ] = FH_Z4_ctrl_fnc_input(u,t)
 global input_signals
 
 global temp_SP;
+global temp_zone_prev;
+
 global prev_SP;
 
 global E_int;
@@ -27,21 +29,42 @@ global Kp;
 global Ki;
 
 global u_prev;
+global u_prev_prev;
+
 global state_prev;
 global u_mpc;
 
-global MPC_model
+global u_FF;
 
+global MPC_model
+global PZ_model
 
 max_press=MD_constant_values.mix_press_max;
 min_press=MD_constant_values.mix_press_min;
+max_press_d=MD_constant_values.mix_press_d;
+min_press_d=-MD_constant_values.mix_press_d;
 
 max_int=MD_constant_values.PID_max_int;
 
 
 if ~isempty(MPC_model.Z4_new) && ~isempty(MPC_model.Z4_new_model_set) && MPC_model.Z4_new_model_set && t(1)>=MD_constant_values.Z4_model_delay
     MPC_model.Z4=MPC_model.Z4_new;
+    
+    if MD_constant_values.Z4_prev_section_corr
+        PZ_model.Z4=PZ_model.Z4_new;
+    end
+    
     MPC_model.Z4_new_model_set=false;
+    
+    u_prev.Z4=0;
+    u_prev_prev.Z4=0;
+    state_prev.Z4=MPC_model.Z4.X0;
+
+    
+    u_FF.Z4.u=[];
+    u_FF.Z4.d=[];
+    u_FF.Z4.dd=[];
+    
 end
 
 
@@ -173,9 +196,54 @@ elseif MD_constant_values.sim_mode_Z4==2
         
         %sp
         
+        %{
+        %prev section sim
+        if MD_constant_values.Z4_prev_section_corr
+            
+            if (sp_(1)-y_(1)>MD_constant_values.Z4_prev_delta && (u_prev_prev.Z4-u_prev.Z4)>0) ||...
+                    (sp_(1)-y_(1)<-MD_constant_values.Z4_prev_delta && (u_prev_prev.Z4-u_prev.Z4)<0)
+                %abs(y_(1)-sp_(1))>MD_constant_values.Z4_prev_delta
+                
+                disp(['ADDITIONAL CONTROL PREVIOUS SECTION ' num2str(abs(y_(1)-sp_(1)))]);
+                %u_prev_prev.Z4=u_prev.Z4;
+
+                temp_prev=[temp_zone_prev(max(1,ceil(time_index-delta_t))) temp_zone_prev(min(length(temp_zone_prev),time_index))];
+                temp_prev_=interp1(sp_t,temp_prev,time_)-MPC_model.Z4.output_offset;
+
+                y_sim=MD_simulate_prev_section_RK4(PZ_model.Z4.A,PZ_model.Z4.B,PZ_model.Z4.C,h,temp_prev_,PZ_model.Z4.X0);
+                sp_=sp_-y_sim';
+            end
+        end
+        %}
+        
+        %{
         [u_mpc.Z4, MPC_model.Z4.X0]=MD_calculate_MPC_control_signal(MPC_model.Z4.A,MPC_model.Z4.B,...
             MPC_model.Z4.C,MPC_model.Z4.K_ob,MPC_model.Z4.Omega,MPC_model.Z4.Psi,...
             MPC_model.Z4.Lzerot,MPC_model.Z4.M,h,u_mpc.Z4,MPC_model.Z4.X0,MPC_model.Z4.ctrl_offset,y_,sp_);
+        %}
+                        
+        temp_prev=[temp_zone_prev(max(1,ceil(time_index-delta_t))) temp_zone_prev(min(length(temp_zone_prev),time_index))];
+        temp_prev_=interp1(sp_t,temp_prev,time_)-MPC_model.Z4.output_offset;
+        y_sim=MD_simulate_prev_section_RK4(PZ_model.Z4.A,PZ_model.Z4.B,PZ_model.Z4.C,h,temp_prev_,PZ_model.Z4.X0);
+        %sp2_=sp_-y_sim';
+       
+       %{
+       [u_mpc.Z4_2, MPC_model.Z4.X0_2]=MD_calculate_MPC_control_signal(MPC_model.Z4.A,MPC_model.Z4.B,...
+            MPC_model.Z4.C,MPC_model.Z4.K_ob,MPC_model.Z4.Omega,MPC_model.Z4.Psi,...
+            MPC_model.Z4.Lzerot,MPC_model.Z4.M,h,u_mpc.Z4,MPC_model.Z4.X0,MPC_model.Z4.ctrl_offset,y_,sp2_);
+        %}
+        
+        [u_mpc.Z4, MPC_model.Z4.X0]=MD_calculate_MPC_control_signal(MPC_model.Z4.A,MPC_model.Z4.B,...
+            MPC_model.Z4.C,MPC_model.Z4.K_ob,MPC_model.Z4.Omega,MPC_model.Z4.Psi,...
+            MPC_model.Z4.Lzerot,MPC_model.Z4.M,h,u_mpc.Z4,max_press,min_press,max_press_d,min_press_d,...
+            MPC_model.Z4.X0,MPC_model.Z4.ctrl_offset,y_,sp_);
+        
+        %disp(['Control diff. ' num2str(u_mpc.Z4-u_mpc.Z4_2)]);
+        
+        %u_FF.Z4.d=[u_FF.Z4.d temp_prev_(end)];
+        %u_FF.Z4.dd=[u_FF.Z4.dd temp_prev_(end)-temp_prev_(1)];
+        %u_FF.Z4.u=[u_FF.Z4.u u_mpc.Z4-u_mpc.Z4_2];
+
         
         output_signal.Z4=[output_signal.Z4; [t(1) u(end)]];
         
@@ -188,6 +256,11 @@ elseif MD_constant_values.sim_mode_Z4==2
         end
         
         result=u_mpc.Z4+MPC_model.Z4.ctrl_offset;
+        
+        %if u_prev_prev.Z4==0                
+            u_prev_prev.Z4=u_prev.Z4;
+        %end
+        
         
         u_prev.Z4=result(1);
         state_prev.Z4=MPC_model.Z4.X0;

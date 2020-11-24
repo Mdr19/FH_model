@@ -28,7 +28,7 @@ classdef MD_constant_values_Z3_PDE_sim
         message_display=0;
         
         %% identification params
-        init_model_intervals=6; %*2+2; % by這 6
+        init_model_intervals=6+2; %*2+2; % by這 6
         new_model_intervals=4;           % by這 4
         new_model_min_inputs=1;          % minimalna liczba wejsc z duzymi zmianami dla identyfikacji - bylo 1
         ident_intervals=4*2*2;           % by這 16

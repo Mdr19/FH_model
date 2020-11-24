@@ -32,6 +32,10 @@ global MPC_model
 max_cln_vlv=MD_constant_values.cln_vlv_max;
 min_cln_vlv=MD_constant_values.cln_vlv_min;
 
+max_cln_vlv_d=MD_constant_values.cln_vlv_d;
+min_cln_vlv_d=-MD_constant_values.cln_vlv_d;
+
+
 max_int_cln=MD_constant_values.PID_max_cln_int;
 
 
@@ -77,12 +81,12 @@ elseif (MD_constant_values.sim_mode_Z3==1) || isempty(MPC_model) || isempty(MPC_
     end
     
     if ~isempty(MPC_model.Z3_new) && MPC_model.Z3_new_model_set && MPC_model.Z3_new.control_signals(2)==1
-            u_mpc.Z3(2,:)=u_prev.Z3(2,:)-MPC_model.Z3_new.ctrl_offset(2,:);
+            u_mpc.Z3(2,:)=u_prev.Z3(2)-MPC_model.Z3_new.ctrl_offset(end);
     end
     
 elseif MD_constant_values.sim_mode_Z3==2 && sum(MPC_model.Z3.control_signals)==2
     
-    result=u_mpc.Z3(2)+MPC_model.Z3.ctrl_offset(2);
+    result=u_mpc.Z3(2)+MPC_model.Z3.ctrl_offset(end);
     
 elseif MD_constant_values.sim_mode_Z3==2 && MPC_model.Z3.control_signals(1)
     
@@ -169,13 +173,13 @@ elseif MD_constant_values.sim_mode_Z3==2 && MPC_model.Z3.control_signals(1)
     
     prev_SP=temp_SP(time_index);
     
-elseif MD_constant_values.sim_mode_Z3==2 && MPC_model.Z3.control_signals(2)
+elseif MD_constant_values.sim_mode_Z3==2 && MPC_model.Z3.control_signals(end)
     
 % MPC for cln vlv
    
     if t(1)==0
         result=u_prev.Z3(2,:);
-        u_mpc.Z3(2,:)=u_prev.Z3(2,:)-MPC_model.Z3.ctrl_offset;
+        u_mpc.Z3(2)=u_prev.Z3(2)-MPC_model.Z3.ctrl_offset(end);
         state_prev.Z3=MPC_model.Z3.X0;
           
         if isempty(input_signal_applied.Z3_input_2)
@@ -194,7 +198,7 @@ elseif MD_constant_values.sim_mode_Z3==2 && MPC_model.Z3.control_signals(2)
         
         delta_t=t(1)-time_temp;
         
-        h=MD_constant_values.h_Z3;         %0.03  0.02
+        h=0.01; %MD_constant_values.h_Z3;         %0.03  0.02
         time_=time_temp:h:t(1);
         
         time_temp=t(1);
@@ -206,17 +210,26 @@ elseif MD_constant_values.sim_mode_Z3==2 && MPC_model.Z3.control_signals(2)
         sp=[temp_SP(max(1,ceil(time_index-delta_t))) temp_SP(min(length(temp_SP),time_index))];
         sp_=interp1(sp_t,sp,time_)-MPC_model.Z3.output_offset;
            
-        [u_mpc.Z3(2,:), MPC_model.Z3.X0]=MD_calculate_MPC_control_signal(MPC_model.Z3.A,MPC_model.Z3.B,...
+        
+        [u_mpc.Z3(2), MPC_model.Z3.X0]=MD_calculate_MPC_control_signal(MPC_model.Z3.A,MPC_model.Z3.B,...
             MPC_model.Z3.C,MPC_model.Z3.K_ob,MPC_model.Z3.Omega,MPC_model.Z3.Psi,...
-            MPC_model.Z3.Lzerot,MPC_model.Z3.M,h,u_mpc.Z3(2,:),MPC_model.Z3.X0,MPC_model.Z3.ctrl_offset,y_,sp_);
+            MPC_model.Z3.Lzerot,MPC_model.Z3.M,h,u_mpc.Z3(2),max_cln_vlv,min_cln_vlv,max_cln_vlv_d,min_cln_vlv_d,...
+            MPC_model.Z3.X0,MPC_model.Z3.ctrl_offset(end),y_,sp_);
+        
+        
+        %{
+        [u_mpc.Z3(2,:), MPC_model.Z3.X0]=MD_calculate_MPC_control_signal_2(MPC_model.Z3.A,MPC_model.Z3.B,...
+            MPC_model.Z3.C,MPC_model.Z3.K_ob,MPC_model.Z3.Omega,MPC_model.Z3.Psi,...
+            MPC_model.Z3.Lzerot,MPC_model.Z3.M,0.005,h,u_mpc.Z3(2,:),MPC_model.Z3.X0,MPC_model.Z3.ctrl_offset,y_,sp_);
+        %}
         
         %disp(['Control calulated: ' ]);
         %u_mpc.Z3
         
         output_signal.Z3=[output_signal.Z3; [t(1) u(end)]];
         
-        if isnan(u_mpc.Z3(2,:))
-            u_mpc.Z3(2,:)=u_prev.Z3(2,:)-MPC_model.Z3.ctrl_offset;
+        if isnan(u_mpc.Z3(2))
+            u_mpc.Z3(2)=u_prev.Z3(2)-MPC_model.Z3.ctrl_offset(end);
         end
         
         if isnan(MPC_model.Z3.X0)
@@ -225,17 +238,17 @@ elseif MD_constant_values.sim_mode_Z3==2 && MPC_model.Z3.control_signals(2)
         
         %result=u_mpc.Z3+MPC_model.Z3.ctrl_offset';
         
-        u_prev.Z3(2,:)=u_mpc.Z3(2,:)+MPC_model.Z3.ctrl_offset;                           % z offsetem
+        u_prev.Z3(2)=u_mpc.Z3(2)+MPC_model.Z3.ctrl_offset(end);                           % z offsetem
         state_prev.Z3=MPC_model.Z3.X0;
         
         input_signal_applied.Z3_input_2=[input_signal_applied.Z3_input_2; [t(1) u_prev.Z3(2)]];
         %input_signal_applied.Z3_input_2=[input_signal_applied.Z3_input_2; [t(1) u_prev.Z3(2)]];
         
-        result=u_mpc.Z3(2,:)+MPC_model.Z3.ctrl_offset;
+        result=u_mpc.Z3(2)+MPC_model.Z3.ctrl_offset(end);
         
     else
         
-        result=u_mpc.Z3(2,:)+MPC_model.Z3.ctrl_offset;
+        result=u_mpc.Z3(2)+MPC_model.Z3.ctrl_offset(end);
         
     end    
 end

@@ -88,10 +88,10 @@ switch data_set
         %intervals_nr=30; %7; %28;
         
         FH3_data.sim_date='05_09';
-        FH3_data.start_index=61000-1000;
+        FH3_data.start_index=61000; %-1000
         
         FH4_data.sim_date='05_09';
-        FH4_data.start_index=61000-1000;
+        FH4_data.start_index=61000; %-1000
         
         intervals_nr=30+15-17; %+15; %50;%+25; %45
         signals_len=8000;
@@ -253,6 +253,7 @@ ident_section_Z4=MD_ident_section(2,{'FH11_Z3_TEMP_PV','FH11_Z4_MIX_PRES_PV',...
 
 
 interval=MD_constant_values.T_sim;
+prev_section_ctrl=MD_constant_values.Z4_prev_section_corr;
 
 %sim_params.FF_control=;
 %sim_params_
@@ -298,9 +299,9 @@ for i=1:intervals_nr
                 ~isempty(ident_section_Z4.ident_models(ident_section_Z4.current_model_nr).intervals(end-1).interval_type)
             
             if FH4_data.sim_mode==2
-                ident_section_Z4.obtain_MPC_model(3,0.6,150/3,MD_constant_values.h_Z4);        %0.03 bylo N=3
+                ident_section_Z4.obtain_MPC_model(5,0.6,150,MD_constant_values.h_Z4);        %0.03 bylo N=3
                 %FH_get_MPC_model(ident_section_Z4,'Z4');      
-                FH_set_MPC_model(ident_section_Z4,'Z4');                     
+                FH_set_MPC_model(ident_section_Z4,'Z4',prev_section_ctrl);                     
             end
                 
         elseif ~isempty(ident_section_Z4.MPC_model)

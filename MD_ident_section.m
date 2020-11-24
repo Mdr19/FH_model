@@ -32,6 +32,7 @@ classdef MD_ident_section < handle
         alternative_model_zero_interval;
         
         MPC_model;
+        PZ_model;
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         ident_method_params;
@@ -947,6 +948,27 @@ classdef MD_ident_section < handle
                     start_model_nr=1;
                 else
                     start_model_nr=2;
+                end
+                
+                
+                if start_model_nr>1
+                                    
+                    if size(obj.current_model)==1
+                        obj.PZ_model.A=obj.current_model.A;
+                        obj.PZ_model.B=obj.current_model.B(:,1);
+                        obj.PZ_model.C=zeros(1,size(obj.PZ_model.A,1));
+                        obj.PZ_model.C(end)=1;
+                        obj.PZ_model.D=obj.current_model.D;
+                        obj.PZ_model.X0=obj.current_initial_state';
+                    else
+                        obj.PZ_model.A=obj.current_model(1).A;
+                        obj.PZ_model.B=obj.current_model(1).B;
+                        obj.PZ_model.C=zeros(1,size(obj.PZ_model.A,1));
+                        obj.PZ_model.C(end)=1;
+                        obj.PZ_model.D=obj.current_model(1).D;
+                        obj.PZ_model.X0=obj.current_initial_state(:,1);
+                    end
+
                 end
                     
                 if size(obj.current_model)==1

@@ -25,11 +25,14 @@ switch(data_set)
             %temp_SP_steps=[1 400+500 820+500 2000-400+500 2500+100+500 3500-100+500 4300+500 5400+500];
             %temp_SP_values=[1184 1181 1178 1175 1170 1163 1162 1160];
             
-            [temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(500,5900,8,1184,1160);
+            [temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(500,5900,4,1184,1160);
             
         elseif zone_nr==4
             %temp_SP_steps=[1 820 2000-400 2500+100 3500-100 4300 5400];
             %temp_SP_values=[1181 1178 1175 1170 1165 1160 1155];
+            
+            [temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(500,5900,10,1181,1155);
+            
         end
         
     case 8
@@ -48,7 +51,7 @@ switch(data_set)
             %temp_SP_steps=[1 1000 2500 4500];
             %temp_SP_values=[1158 1168 1175 1183];
             
-            [temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(500,5000,5,1158,1183);
+            [temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(500,5000,4,1158+3,1183+3);
             
         elseif zone_nr==4
             temp_SP_steps=[1 1020 2000-100 2500+100 3500-100 4300 5400];
