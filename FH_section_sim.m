@@ -263,9 +263,7 @@ classdef FH_section_sim < handle
         
         function perform_simulation(obj,end_time)
             
-            %global mix_press;
             global temp_zone_prev;
-            %global temp_zone_prev_del;
             global glass_pull;
             global temp_SP;
             
@@ -356,6 +354,8 @@ classdef FH_section_sim < handle
             % time vector
             obj.intervals(obj.current_interval).time=obj.current_index-obj.start_index:obj.current_index-obj.start_index+signal_len;
             
+            % model with mix. press. only
+            
             if obj.inputs_nr==2
                 temp_zone_prev=obj.intervals(obj.current_interval).signals(1,:);
                 input_signals.(strcat(obj.section_name,'_input'))=obj.intervals(obj.current_interval).signals(2,:);
@@ -375,6 +375,15 @@ classdef FH_section_sim < handle
                 else
                     time_temp=0;
                 end
+                
+                if isempty(MPC_model.(strcat(obj.section_name,'_new')))
+                    obj.applied_controller(obj.current_interval).input_1='PID';
+                else
+                    obj.applied_controller(obj.current_interval).input_1='MPC';
+                end
+                
+                % model with mix. press. and cln. vlv.
+                
             elseif obj.inputs_nr==3
                 
                 temp_zone_prev=obj.intervals(obj.current_interval).signals(1,:);
@@ -402,10 +411,10 @@ classdef FH_section_sim < handle
                     time_temp=0;
                 end
                 
-                % current controller 
+                % current controller
                 obj.applied_controller(obj.current_interval).input_1='PID';
                 obj.applied_controller(obj.current_interval).input_2='PID';
-
+                
                 % MPC model modification for zone 3
                 
                 if ~isempty(MPC_model.(obj.section_name)) || ~isempty(MPC_model.(strcat(obj.section_name,'_new')))
@@ -413,20 +422,26 @@ classdef FH_section_sim < handle
                     without_mix_press=false;
                     without_cln_vlv=false;
                     
-                    if (abs(input_signal_applied.(strcat(obj.section_name,'_input_1'))(end,2)-MD_constant_values.mix_press_min)<0.25 && temp_SP(end,2)<output_signal.(obj.section_name)(end,2)) ||...
-                            (abs(input_signal_applied.(strcat(obj.section_name,'_input_1'))(end,2)-MD_constant_values.mix_press_max)<0.25 && temp_SP(end,2)>output_signal.(obj.section_name)(end,2))
+                    if (abs(input_signal_applied.(strcat(obj.section_name,'_input_2'))(end,2)-MD_constant_values.cln_vlv_min)<1 && temp_SP(end,2)>output_signal.(obj.section_name)(end,2)) ||...
+                            (abs(input_signal_applied.(strcat(obj.section_name,'_input_2'))(end,2)-MD_constant_values.cln_vlv_max)<1 && temp_SP(end,2)<output_signal.(obj.section_name)(end,2))
                         %disp('Mix press omitted');
-                        without_mix_press=true;
-                    elseif (abs(input_signal_applied.(strcat(obj.section_name,'_input_2'))(end,2)-MD_constant_values.cln_vlv_min)<1 && temp_SP(end,2)<output_signal.(obj.section_name)(end,2)) ||...
-                            (abs(input_signal_applied.(strcat(obj.section_name,'_input_2'))(end,2)-MD_constant_values.cln_vlv_max)<1 && temp_SP(end,2)>output_signal.(obj.section_name)(end,2))
-                        %disp('Cln vlv omitted');
                         without_cln_vlv=true;
+                    elseif (abs(input_signal_applied.(strcat(obj.section_name,'_input_1'))(end,2)-MD_constant_values.mix_press_min)<0.25 && temp_SP(end,2)<output_signal.(obj.section_name)(end,2)) ||...
+                            (abs(input_signal_applied.(strcat(obj.section_name,'_input_1'))(end,2)-MD_constant_values.mix_press_max)<0.25 && temp_SP(end,2)>output_signal.(obj.section_name)(end,2))
+                        %disp('Cln vlv omitted');
+                        without_mix_press=true;
                     end
+                    
+                    
+                    
                 end
                 
                 % for current models
                 
-                if ~isempty(MPC_model.(obj.section_name)) && sum(MPC_model.(obj.section_name).control_signals)==2
+                if ~isempty(MPC_model.(obj.section_name)) && sum(MPC_model.(strcat(obj.section_name,'_saved')).control_signals)==2
+                    
+                    MPC_model.(obj.section_name).control_signals(1)=1;
+                    MPC_model.(obj.section_name).control_signals(2)=1;
                     
                     if without_mix_press
                         
@@ -454,7 +469,7 @@ classdef FH_section_sim < handle
                                 MPC_model.(obj.section_name).M(ceil(i/2),:)=M(i,n+1:end);
                             end
                         end
-                                         
+                        
                     elseif without_cln_vlv
                         
                         disp('MPC mix press ONLY');
@@ -481,7 +496,7 @@ classdef FH_section_sim < handle
                                 MPC_model.(obj.section_name).M(ceil(i/2),:)=M(i,1:n);
                             end
                         end
-                    
+                        
                     else
                         
                         disp('Both models');
@@ -501,40 +516,41 @@ classdef FH_section_sim < handle
                         
                     end
                     
-                elseif ~isempty(MPC_model.(obj.section_name)) && sum(MPC_model.(obj.section_name).control_signals)==1 
-                    disp('1 input only');
+                elseif ~isempty(MPC_model.(obj.section_name)) && sum(MPC_model.(strcat(obj.section_name,'_saved')).control_signals)==1
                     
-                    if MPC_model.(obj.section_name).control_signals(1)
-                          obj.applied_controller(obj.current_interval).input_1='MPC';
-                    elseif MPC_model.(obj.section_name).control_signals(2)
-                          obj.applied_controller(obj.current_interval).input_2='MPC';
+                    % 1 controlled signal in model only - mix. press. or
+                    % cln. vlv.
+                    
+                    if MPC_model.(strcat(obj.section_name,'_saved')).control_signals(1)
+                        obj.applied_controller(obj.current_interval).input_1='MPC';
+                    elseif MPC_model.(strcat(obj.section_name,'_saved')).control_signals(2)
+                        obj.applied_controller(obj.current_interval).input_2='MPC';
                     end
-                          %obj.applied_controller(obj.current_interval).input_1='MPC';
-                         
-                          
-                          
-                    if without_mix_press && ~isempty(MPC_model.(strcat(obj.section_name,'_new_model_set'))) && MPC_model.(strcat(obj.section_name,'_new_model_set'))
-                          obj.applied_controller(obj.current_interval).input_2='MPC';
-                    elseif without_cln_vlv && ~isempty(MPC_model.(strcat(obj.section_name,'_new_model_set'))) && MPC_model.(strcat(obj.section_name,'_new_model_set'))
-                          obj.applied_controller(obj.current_interval).input_1='MPC';
+                    
+                    if without_mix_press && ~isempty(MPC_model.(strcat(obj.section_name,'_new_model_set'))) && MPC_model.(strcat(obj.section_name,'_new_model_set')) && ...
+                            sum(MPC_model.(strcat(obj.section_name,'_new')).control_signals)==2
+                        obj.applied_controller(obj.current_interval).input_2='MPC';
+                    elseif without_cln_vlv && ~isempty(MPC_model.(strcat(obj.section_name,'_new_model_set'))) && MPC_model.(strcat(obj.section_name,'_new_model_set')) && ...
+                            sum(MPC_model.(strcat(obj.section_name,'_new')).control_signals)==2
+                        obj.applied_controller(obj.current_interval).input_1='MPC';
                     elseif ~isempty(MPC_model.(strcat(obj.section_name,'_new_model_set'))) && ...
                             MPC_model.(strcat(obj.section_name,'_new_model_set')) && sum(MPC_model.(strcat(obj.section_name,'_new')).control_signals)==2
-                            obj.applied_controller(obj.current_interval).input_1='MPC';
-                            obj.applied_controller(obj.current_interval).input_2='MPC';
+                        obj.applied_controller(obj.current_interval).input_1='MPC';
+                        obj.applied_controller(obj.current_interval).input_2='MPC';
                     end
-                   
+                    
                 elseif ~isempty(MPC_model.(strcat(obj.section_name,'_new')))
                     
                     % PID and new model not applied yet
                     
                     if without_mix_press && ~isempty(MPC_model.(strcat(obj.section_name,'_new_model_set'))) && MPC_model.(strcat(obj.section_name,'_new_model_set'))
-                          obj.applied_controller(obj.current_interval).input_2='MPC';
+                        obj.applied_controller(obj.current_interval).input_2='MPC';
                     elseif without_cln_vlv && ~isempty(MPC_model.(strcat(obj.section_name,'_new_model_set'))) && MPC_model.(strcat(obj.section_name,'_new_model_set'))
-                          obj.applied_controller(obj.current_interval).input_1='MPC';
+                        obj.applied_controller(obj.current_interval).input_1='MPC';
                     elseif ~isempty(MPC_model.(strcat(obj.section_name,'_new_model_set'))) && ...
                             MPC_model.(strcat(obj.section_name,'_new_model_set')) && sum(MPC_model.(strcat(obj.section_name,'_new')).control_signals)==2
-                            obj.applied_controller(obj.current_interval).input_1='MPC';
-                            obj.applied_controller(obj.current_interval).input_2='MPC';
+                        obj.applied_controller(obj.current_interval).input_1='MPC';
+                        obj.applied_controller(obj.current_interval).input_2='MPC';
                     end
                     
                 end
@@ -548,7 +564,6 @@ classdef FH_section_sim < handle
                 input_signal_applied.(strcat(obj.section_name,'_input_2'))=[];
             end
             
-            
             [obj.fea.sol.u,tlist] = solvetime( obj.fea, 'fid',     MD_constant_values.FH_PDE_display, ...
                 'tmax',    signal_len, ...
                 'icub',    6, ...
@@ -557,7 +572,6 @@ classdef FH_section_sim < handle
                 'init',    obj.init_temp_function, ...
                 'tolchg',  1e-6, ...
                 'tstop',   1e-6);
-            
             
             if tlist(end)<signal_len
                 tlist=[tlist signal_len];
@@ -569,7 +583,6 @@ classdef FH_section_sim < handle
                     input_signal_applied.(strcat(obj.section_name,'_input_2'))(end+1,1)=signal_len;
                     input_signal_applied.(strcat(obj.section_name,'_input_2'))(end,2)=input_signal_applied.(strcat(obj.section_name,'_input_2'))(end-1,2);
                 end
-                
             end
             
             obj.intervals(obj.current_interval).simulated_temp.time=tlist+obj.current_index-obj.start_index;
@@ -611,13 +624,19 @@ classdef FH_section_sim < handle
                         end
                     end
                     
-                    
                     obj.intervals(obj.current_interval).signals(3,:)=input_signal_resampled;
                     
                 end
-                
-                
             end
+            
+            % SP difference 
+            if obj.inputs_nr==2
+                obj.intervals(obj.current_interval).SP_diff=sumsqr(obj.intervals(obj.current_interval).simulated_temp_resampled-obj.intervals(obj.current_interval).signals(4,:));
+            elseif obj.inputs_nr==3
+                obj.intervals(obj.current_interval).SP_diff=sumsqr(obj.intervals(obj.current_interval).simulated_temp_resampled-obj.intervals(obj.current_interval).signals(5,:));
+            end
+            
+            % init. temp. function for next intervals
             
             last_temp_dist=obj.fea.sol.u(:,end);
             obj.init_temp_function_par = polyfit(0:(obj.section_len/(length(last_temp_dist)-1)):obj.section_len, last_temp_dist', MD_constant_values.temp_poly_rank);
@@ -632,15 +651,8 @@ classdef FH_section_sim < handle
             end
             
             obj.init_temp_function = str;
-            
             obj.current_index=end_time;
             
-            %{
-            figure(501);
-            hold on;
-            plot(obj.fea.sol.u(1:end,end));
-            text(1,obj.fea.sol.u(1,end),num2str(obj.current_interval));
-            %}
         end
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -654,6 +666,8 @@ classdef FH_section_sim < handle
             global temp_SP;
             
             global E_int;
+            global E_int_cln;
+            
             global E_temp;
             global time_temp;
             
@@ -678,6 +692,7 @@ classdef FH_section_sim < handle
             % common
             global input_signals
             global output_signal;
+            global MPC_model;
             
             %global error_hist;
             
@@ -752,7 +767,6 @@ classdef FH_section_sim < handle
             % time vector
             obj.intervals(obj.current_interval).time=obj.current_index-obj.start_index:obj.current_index-obj.start_index+signal_len;
             
-            
             if obj.inputs_nr==2
                 %temp_zone_prev=obj.intervals(obj.current_interval).signals(1,:);
                 temp_zone_prev=obj.intervals(obj.current_interval).signals(1,:);
@@ -775,6 +789,14 @@ classdef FH_section_sim < handle
                 else
                     time_temp=0;
                 end
+                
+                if isempty(MPC_model.(strcat(obj.section_name,'_new')))
+                    obj.applied_controller(obj.current_interval).input_1='PID';
+                else
+                    obj.applied_controller(obj.current_interval).input_1='MPC';
+                end
+                
+                
             elseif obj.inputs_nr==3
                 
                 temp_zone_prev=obj.intervals(obj.current_interval).signals(1,:);
@@ -788,6 +810,7 @@ classdef FH_section_sim < handle
                 
                 if obj.current_interval==1
                     E_int.(obj.section_name)=0;
+                    E_int_cln.(obj.section_name)=0;
                     E_temp=0;
                     time_temp=0;
                     
@@ -800,6 +823,155 @@ classdef FH_section_sim < handle
                     sim_mode_append=1;
                 else
                     time_temp=0;
+                end
+                
+                
+                % current controller
+                obj.applied_controller(obj.current_interval).input_1='PID';
+                obj.applied_controller(obj.current_interval).input_2='PID';
+                
+                % MPC model modification for zone 3
+                
+                if ~isempty(MPC_model.(obj.section_name)) || ~isempty(MPC_model.(strcat(obj.section_name,'_new')))
+                    
+                    without_mix_press=false;
+                    without_cln_vlv=false;
+                    
+                    if (abs(input_signal_applied.(strcat(obj.section_name,'_input_2'))(end,2)-MD_constant_values.cln_vlv_min)<1 &&...
+                            temp_SP(end,2)>output_signal.(obj.section_name)(end,2)) ||...
+                            (abs(input_signal_applied.(strcat(obj.section_name,'_input_2'))(end,2)-MD_constant_values.cln_vlv_max)<1 &&...
+                            temp_SP(end,2)<output_signal.(obj.section_name)(end,2))
+                        %disp('Mix press omitted');
+                        without_cln_vlv=true;
+                    elseif (abs(input_signal_applied.(strcat(obj.section_name,'_input_1'))(end,2)-MD_constant_values.mix_press_min)<0.25 &&...
+                            temp_SP(end,2)<output_signal.(obj.section_name)(end,2)) ||...
+                            (abs(input_signal_applied.(strcat(obj.section_name,'_input_1'))(end,2)-MD_constant_values.mix_press_max)<0.25 &&...
+                            temp_SP(end,2)>output_signal.(obj.section_name)(end,2))
+                        %disp('Cln vlv omitted');
+                        without_mix_press=true;
+                    end
+                    
+                    
+                    
+                end
+                
+                % for current models
+                
+                if ~isempty(MPC_model.(obj.section_name)) && sum(MPC_model.(strcat(obj.section_name,'_saved')).control_signals)==2
+                    
+                    MPC_model.(obj.section_name).control_signals(1)=1;
+                    MPC_model.(obj.section_name).control_signals(2)=1;
+                    
+                    if without_mix_press
+                        
+                        disp('MPC cln vlv ONLY');
+                        obj.applied_controller(obj.current_interval).input_2='MPC';
+                        
+                        MPC_model.(obj.section_name).control_signals(1)=0;
+                        MPC_model.(obj.section_name).B=MPC_model.(strcat(obj.section_name,'_saved')).B(:,2);
+                        
+                        n=size(MPC_model.(obj.section_name).Omega,1)/2;
+                        MPC_model.(obj.section_name).Omega=MPC_model.(strcat(obj.section_name,'_saved')).Omega(n+1:end,n+1:end);
+                        
+                        m=size(MPC_model.(obj.section_name).Psi,1)/2;
+                        MPC_model.(obj.section_name).Psi=MPC_model.(strcat(obj.section_name,'_saved')).Psi(m+1:end,:);
+                        
+                        MPC_model.(obj.section_name).Lzerot=MPC_model.(strcat(obj.section_name,'_saved')).Lzerot(2,n+1:end);
+                        
+                        M=MPC_model.(strcat(obj.section_name,'_saved')).M;
+                        MPC_model.(obj.section_name).M=[];
+                        
+                        %M
+                        
+                        for i=1:size(M,1)
+                            if mod(i,2)==0
+                                MPC_model.(obj.section_name).M(ceil(i/2),:)=M(i,n+1:end);
+                            end
+                        end
+                        
+                    elseif without_cln_vlv
+                        
+                        disp('MPC mix press ONLY');
+                        obj.applied_controller(obj.current_interval).input_1='MPC';
+                        
+                        MPC_model.(obj.section_name).control_signals(2)=0;
+                        MPC_model.(obj.section_name).B=MPC_model.(strcat(obj.section_name,'_saved')).B(:,1);
+                        
+                        n=size(MPC_model.(obj.section_name).Omega,1)/2;
+                        MPC_model.(obj.section_name).Omega=MPC_model.(strcat(obj.section_name,'_saved')).Omega(1:n,1:n);
+                        
+                        m=size(MPC_model.(obj.section_name).Psi,1)/2;
+                        MPC_model.(obj.section_name).Psi=MPC_model.(strcat(obj.section_name,'_saved')).Psi(1:m,:);
+                        
+                        MPC_model.(obj.section_name).Lzerot=MPC_model.(strcat(obj.section_name,'_saved')).Lzerot(1,1:n);
+                        
+                        M=MPC_model.(strcat(obj.section_name,'_saved')).M;
+                        MPC_model.(obj.section_name).M=[];
+                        
+                        %M
+                        
+                        for i=1:size(M,1)
+                            if mod(i,2)==1
+                                MPC_model.(obj.section_name).M(ceil(i/2),:)=M(i,1:n);
+                            end
+                        end
+                        
+                    else
+                        
+                        disp('Both models');
+                        obj.applied_controller(obj.current_interval).input_1='MPC';
+                        obj.applied_controller(obj.current_interval).input_2='MPC';
+                        
+                        MPC_model.(obj.section_name).control_signals=MPC_model.(strcat(obj.section_name,'_saved')).control_signals;
+                        MPC_model.(obj.section_name).B=MPC_model.(strcat(obj.section_name,'_saved')).B;
+                        
+                        MPC_model.(obj.section_name).Omega=MPC_model.(strcat(obj.section_name,'_saved')).Omega;
+                        
+                        MPC_model.(obj.section_name).Psi=MPC_model.(strcat(obj.section_name,'_saved')).Psi;
+                        
+                        MPC_model.(obj.section_name).Lzerot=MPC_model.(strcat(obj.section_name,'_saved')).Lzerot;
+                        
+                        MPC_model.(obj.section_name).M=MPC_model.(strcat(obj.section_name,'_saved')).M;
+                        
+                    end
+                    
+                elseif ~isempty(MPC_model.(obj.section_name)) && sum(MPC_model.(strcat(obj.section_name,'_saved')).control_signals)==1
+                    
+                    % 1 controlled signal in model only - mix. press. or
+                    % cln. vlv.
+                    
+                    if MPC_model.(strcat(obj.section_name,'_saved')).control_signals(1)
+                        obj.applied_controller(obj.current_interval).input_1='MPC';
+                    elseif MPC_model.(strcat(obj.section_name,'_saved')).control_signals(2)
+                        obj.applied_controller(obj.current_interval).input_2='MPC';
+                    end
+                    
+                    if without_mix_press && ~isempty(MPC_model.(strcat(obj.section_name,'_new_model_set'))) && MPC_model.(strcat(obj.section_name,'_new_model_set')) && ...
+                            sum(MPC_model.(strcat(obj.section_name,'_new')).control_signals)==2
+                        obj.applied_controller(obj.current_interval).input_2='MPC';
+                    elseif without_cln_vlv && ~isempty(MPC_model.(strcat(obj.section_name,'_new_model_set'))) && MPC_model.(strcat(obj.section_name,'_new_model_set')) && ...
+                            sum(MPC_model.(strcat(obj.section_name,'_new')).control_signals)==2
+                        obj.applied_controller(obj.current_interval).input_1='MPC';
+                    elseif ~isempty(MPC_model.(strcat(obj.section_name,'_new_model_set'))) && ...
+                            MPC_model.(strcat(obj.section_name,'_new_model_set')) && sum(MPC_model.(strcat(obj.section_name,'_new')).control_signals)==2
+                        obj.applied_controller(obj.current_interval).input_1='MPC';
+                        obj.applied_controller(obj.current_interval).input_2='MPC';
+                    end
+                    
+                elseif ~isempty(MPC_model.(strcat(obj.section_name,'_new')))
+                    
+                    % PID and new model not applied yet
+                    
+                    if without_mix_press && ~isempty(MPC_model.(strcat(obj.section_name,'_new_model_set'))) && MPC_model.(strcat(obj.section_name,'_new_model_set'))
+                        obj.applied_controller(obj.current_interval).input_2='MPC';
+                    elseif without_cln_vlv && ~isempty(MPC_model.(strcat(obj.section_name,'_new_model_set'))) && MPC_model.(strcat(obj.section_name,'_new_model_set'))
+                        obj.applied_controller(obj.current_interval).input_1='MPC';
+                    elseif ~isempty(MPC_model.(strcat(obj.section_name,'_new_model_set'))) && ...
+                            MPC_model.(strcat(obj.section_name,'_new_model_set')) && sum(MPC_model.(strcat(obj.section_name,'_new')).control_signals)==2
+                        obj.applied_controller(obj.current_interval).input_1='MPC';
+                        obj.applied_controller(obj.current_interval).input_2='MPC';
+                    end
+                    
                 end
             end
             
@@ -819,15 +991,30 @@ classdef FH_section_sim < handle
                 'tolchg',  1e-6, ...
                 'tstop',   1e-6);
             
+            
+            if tlist(end)<signal_len
+                tlist=[tlist signal_len];
+                obj.fea.sol.u=[obj.fea.sol.u obj.fea.sol.u(:,end)];
+                input_signal_applied.(strcat(obj.section_name,'_input_1'))(end+1,1)=signal_len;
+                input_signal_applied.(strcat(obj.section_name,'_input_1'))(end,2)=input_signal_applied.(strcat(obj.section_name,'_input_1'))(end-1,2);
+                
+                if obj.inputs_nr==3
+                    input_signal_applied.(strcat(obj.section_name,'_input_2'))(end+1,1)=signal_len;
+                    input_signal_applied.(strcat(obj.section_name,'_input_2'))(end,2)=input_signal_applied.(strcat(obj.section_name,'_input_2'))(end-1,2);
+                end
+            end
+            
             obj.intervals(obj.current_interval).simulated_temp.time=tlist+obj.current_index-obj.start_index;
             obj.intervals(obj.current_interval).simulated_temp.values=obj.fea.sol.u(end,:);
             
             obj.intervals(obj.current_interval).simulated_temp_resampled=...
-                interp1(obj.intervals(obj.current_interval).simulated_temp.time,obj.intervals(obj.current_interval).simulated_temp.values,obj.intervals(obj.current_interval).time);
+                interp1(obj.intervals(obj.current_interval).simulated_temp.time,...
+                obj.intervals(obj.current_interval).simulated_temp.values,obj.intervals(obj.current_interval).time);
             
             if (obj.sim_mode==1) || (obj.sim_mode==2 && sim_mode_append==1)
                 
-                input_signal_resampled=interp1(obj.intervals(obj.current_interval).simulated_temp.time,input_signal_applied.(strcat(obj.section_name,'_input_1')),obj.intervals(obj.current_interval).time);
+                input_signal_resampled=interp1(obj.intervals(obj.current_interval).simulated_temp.time,...
+                    input_signal_applied.(strcat(obj.section_name,'_input_1')),obj.intervals(obj.current_interval).time,'nearest');
                 input_signal_resampled=input_signal_resampled(:,2);
                 
                 for i=1:length(input_signal_resampled)
@@ -842,7 +1029,8 @@ classdef FH_section_sim < handle
                 
                 if obj.inputs_nr==3
                     
-                    input_signal_resampled=interp1(obj.intervals(obj.current_interval).simulated_temp.time,input_signal_applied.(strcat(obj.section_name,'_input_2')),obj.intervals(obj.current_interval).time);
+                    input_signal_resampled=interp1(obj.intervals(obj.current_interval).simulated_temp.time,...
+                        input_signal_applied.(strcat(obj.section_name,'_input_2')),obj.intervals(obj.current_interval).time,'nearest');
                     input_signal_resampled=input_signal_resampled(:,2);
                     
                     for i=1:length(input_signal_resampled)
@@ -857,9 +1045,16 @@ classdef FH_section_sim < handle
                     
                 end
                 
-                
-                
             end
+            
+            % SP difference 
+            if obj.inputs_nr==2
+                obj.intervals(obj.current_interval).SP_diff=sumsqr(obj.intervals(obj.current_interval).simulated_temp_resampled-obj.intervals(obj.current_interval).signals(4,:));
+            elseif obj.inputs_nr==3
+                obj.intervals(obj.current_interval).SP_diff=sumsqr(obj.intervals(obj.current_interval).simulated_temp_resampled-obj.intervals(obj.current_interval).signals(5,:));
+            end
+            
+            
             
             %figure(300+obj.current_interval)
             %plot(obj.intervals(obj.current_interval).simulated_temp.time,obj.intervals(obj.current_interval).simulated_temp.values);
@@ -894,6 +1089,27 @@ classdef FH_section_sim < handle
         end
         
         
+        function sum_diff= get_last_SP_diff(obj,n)
+            
+            sum_diff=0;
+            
+            if obj.current_interval>n
+                
+                for i=1:4
+                    sum_diff=sum_diff+obj.intervals(end-n+i).SP_diff; 
+                end
+                
+            else
+                
+                for i=1:length(obj.current_interval)
+                    sum_diff=sum_diff+obj.intervals(i).SP_diff;
+                end
+                
+            end
+            
+        end
+        
+        
         function signal_long=get_signal(obj,signal_nr,start_index,end_index)
             
             %disp('-------------------- FUNCTION GET SIGNALS START --------------------');
@@ -901,8 +1117,12 @@ classdef FH_section_sim < handle
             signal_long=[];
             
             if start_index<0
-                signal_long=obj.intervals(1).signals(signal_nr,1)*ones(1,abs(start_index));
-                start_index=0;
+                if end_index<0
+                    signal_long=obj.intervals(1).signals(signal_nr,1)*ones(1,abs(end_index-start_index+1));
+                else
+                    signal_long=obj.intervals(1).signals(signal_nr,1)*ones(1,abs(start_index));
+                    start_index=0;
+                end
             end
             
             for i=1:obj.current_interval
@@ -1039,13 +1259,21 @@ classdef FH_section_sim < handle
             end
         end
         
-        function plot_inputs_multiplot(obj,input_nr)
+        function plot_inputs_multiplot(obj,input_nr,plot_ctrl_intervals,inerval_width)
             
             if nargin <=1
                 input_nr=1;
+                plot_ctrl_intervals=0;
+                inerval_width=0;
             end
             
             f_size=10;
+            
+            max_press=MD_constant_values.mix_press_max;
+            min_press=MD_constant_values.mix_press_min;
+            max_cln_vlv=MD_constant_values.cln_vlv_max;
+            min_cln_vlv=MD_constant_values.cln_vlv_min;
+            
             
             for i=1:obj.current_interval
                 hold on;
@@ -1055,9 +1283,31 @@ classdef FH_section_sim < handle
                     %p3=plot(obj.intervals(i).time,obj.intervals(i).signals(4,:),'r');
                     legend('Mix. press.','Location','northeast');
                     
+                    if plot_ctrl_intervals
+                        if strcmp(obj.applied_controller(i).input_1,'PID')
+                            patch([inerval_width*(i-1) inerval_width*i inerval_width*i inerval_width*(i-1)],...
+                                [min_press min_press  max_press max_press],[0 1 1],'FaceAlpha',0.1,'LineStyle','none');
+                        else
+                            patch([inerval_width*(i-1) inerval_width*i inerval_width*i inerval_width*(i-1)],...
+                                [min_press min_press  max_press max_press],[1 1 0],'FaceAlpha',0.1,'LineStyle','none');
+                        end
+                    end
+                    
                 else
                     plot(obj.intervals(i).time,obj.intervals(i).signals(3,:),'r');
                     legend('Cln. vlv. pos.','Location','northeast');
+                    
+                    if plot_ctrl_intervals
+                        if strcmp(obj.applied_controller(i).input_2,'PID')
+                            patch([inerval_width*(i-1) inerval_width*i inerval_width*i inerval_width*(i-1)],...
+                                [min_cln_vlv min_cln_vlv  max_cln_vlv max_cln_vlv],[0 1 1],'FaceAlpha',0.1,'LineStyle','none');
+                        else
+                            patch([inerval_width*(i-1) inerval_width*i inerval_width*i inerval_width*(i-1)],...
+                                [min_cln_vlv min_cln_vlv  max_cln_vlv max_cln_vlv],[1 1 0],'FaceAlpha',0.1,'LineStyle','none');
+                        end
+                    end
+                    
+                    
                 end
             end
             

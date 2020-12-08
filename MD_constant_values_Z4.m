@@ -40,7 +40,7 @@ classdef MD_constant_values_Z4
         var_threshold=0.01;              % minimalna wariancja dla wejœcia    % bylo 0.01
         corr_threshold=0.5;
         change_model=1;                  % update modelu podczas symulacji
-        model_reident=0;                 % re-identyfikacja modelu GS
+        model_reident=1;                 % re-identyfikacja modelu GS
         sum_sqr_difference=1;            % ró¿nica model-obiekt abs/sqr
         
         %sprawdznie interwa³ów (wariancja/korelacja)

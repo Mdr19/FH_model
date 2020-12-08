@@ -24,12 +24,12 @@ classdef MD_constant_values_Z3_PDE_sim
         %% signals plot
         plot_offset1=400;
         plot_offset2=250;
-        font_size=25;
+        font_size=20;       %25
         message_display=0;
         
         %% identification params
         init_model_intervals=6+2; %*2+2; % by³o 6
-        new_model_intervals=4;           % by³o 4
+        new_model_intervals=4*2;           % by³o 4
         new_model_min_inputs=1;          % minimalna liczba wejsc z duzymi zmianami dla identyfikacji - bylo 1
         ident_intervals=4*2*2;           % by³o 16
         min_inputs_ident=2;              % minimalna liczba wejsæ dla modelu
@@ -43,7 +43,7 @@ classdef MD_constant_values_Z3_PDE_sim
         sum_sqr_difference=1;            % ró¿nica model-obiekt abs/sqr
         
         %sprawdznie interwa³ów (wariancja/korelacja)
-        var_corr_method=1;               % 0 - var, 1 - corr
+        var_corr_method=2;               % 0 - var, 1 - corr, 2 - both
         
         %identyfikacja dla nowego punktu pracy
         alternative_model_method=1;            % 0 - nowy interwal zerowy pierwszy, 1 - nowy interwa³ zerowy w srodku
@@ -51,11 +51,11 @@ classdef MD_constant_values_Z3_PDE_sim
         %% opcje
         ident_method=2;             % dotyczy MFM - 1 eigenvector, others - ograniczenie liniowe
         initial_model_method=2;     % 1 - oryginalne, 2-LSM, 3 LSM out
-        initial_state_method=1;     % 0 - symulacja , 1- obserwator
+        initial_state_method=0;     % 0 - symulacja , 1- obserwator
         ident_mode=1;               % 0 - separate models, 1 - single model for controlled inputs
         
         %% uncertain pull
-        pull_uncertain=0;
+        pull_uncertain=1;
         
         
         %% parametry dla metody GS

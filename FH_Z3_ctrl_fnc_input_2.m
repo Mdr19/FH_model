@@ -127,6 +127,8 @@ elseif MD_constant_values.sim_mode_Z3==2 && MPC_model.Z3.control_signals(1)
                 
                 if E_temp>0 && E_int_cln.Z3*Ki_cln>max_int_cln
                     E_int_cln.Z3=max_int_cln/Ki_cln;
+                elseif E_temp<0 && E_int_cln.Z3*Ki_cln<-max_int_cln
+                    E_int_cln.Z3=-max_int_cln/Ki_cln;
                 else
                     E_int_cln.Z3=E_int_cln.Z3+E_temp*(t(1)-input_signal_applied.Z3_input_2(end,1));
                 end
@@ -152,7 +154,7 @@ elseif MD_constant_values.sim_mode_Z3==2 && MPC_model.Z3.control_signals(1)
         disp(['PID cln vlv. Time: ' num2str(time_temp) ' error: ' num2str(error) ' integral: ' num2str(E_int_cln.Z3) ' control signal: ' num2str(result(1))]);
         
         u_prev.Z3(2,:)=result(1);
-        u_mpc.Z3(2,:)=result(1);
+        %u_mpc.Z3(2,:)=result(1);
         
         input_signal_applied.Z3_input_2=[input_signal_applied.Z3_input_2; [t(1) result(1)]];
                 

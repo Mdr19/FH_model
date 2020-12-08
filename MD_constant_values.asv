@@ -23,10 +23,10 @@ classdef MD_constant_values
         Strejc_rank_constraint=0;        % Strejc model with the same rank as SS model 
         
         Kp=1.0;     % 1.0
-        Ki=0.01;    % 0.01
+        Ki=0.01/2;    % 0.01
                
         Kp_cln=30;  % 30
-        Ki_cln=0.1; % 0.1
+        Ki_cln=0.1/2; % 0.1
         
         %% MPC model params
         h_Z3=0.01;      %0.0002       0.01

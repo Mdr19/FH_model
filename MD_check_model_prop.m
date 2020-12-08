@@ -2,7 +2,7 @@ function model_prop = MD_check_model_prop( model_inputs,params_vector,input_sign
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
-model_prop=false;
+model_prop=true;
 inputs_nr=sum(model_inputs);
 current_input_nr=1;
 

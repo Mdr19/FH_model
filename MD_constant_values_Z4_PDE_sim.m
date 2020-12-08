@@ -29,7 +29,7 @@ classdef MD_constant_values_Z4_PDE_sim
         message_display=0;
         
         %% identification params
-        init_model_intervals=8-2+2; %*2+2; % by³o 6
+        init_model_intervals=8; %*2+2; % by³o 6
         new_model_intervals=4;           % by³o 4
         new_model_min_inputs=2;          % minimalna liczba wejsc z duzymi zmianami dla identyfikacji - bylo 1
         ident_intervals=4*2*2;           % by³o 16
@@ -40,11 +40,11 @@ classdef MD_constant_values_Z4_PDE_sim
         var_threshold=0.01;              % minimalna wariancja dla wejœcia    % bylo 0.01
         corr_threshold=0.5;
         change_model=1;                  % update modelu podczas symulacji
-        model_reident=0;                 % re-identyfikacja modelu GS
+        model_reident=1;                 % re-identyfikacja modelu GS
         sum_sqr_difference=1;            % ró¿nica model-obiekt abs/sqr
         
         %% sprawdznie interwa³ów (wariancja/korelacja)
-        var_corr_method=1;               % 0 - var, 1 - corr
+        var_corr_method=2;               % 0 - var, 1 - corr
         
         %% identyfikacja dla nowego punktu pracy
         alternative_model_method=1;            % 0 - nowy interwal zerowy pierwszy, 1 - nowy interwa³ zerowy w srodku
@@ -52,7 +52,7 @@ classdef MD_constant_values_Z4_PDE_sim
         %% opcje
         ident_method=2;             % dotyczy MFM - 1 eigenvector, others - ograniczenie liniowe
         initial_model_method=2;     % 1 - oryginalne, 2-LSM, 3 LSM out
-        initial_state_method=1;     % 0 - symulacja , 1- obserwator
+        initial_state_method=0;     % 0 - symulacja , 1- obserwator
         ident_mode=1;               % 0 - separate models, 1 - single model for controled inputs
         
         %% uncertain pull

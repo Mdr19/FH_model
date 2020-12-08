@@ -13,7 +13,7 @@ temp_SP_values(1)=start_SP;
 
 for i=2:elements_nr+1
     temp_SP_values(i)=start_SP+delta_SP*(i-1);
-    temp_SP_steps(i)=start_cnt+delta_t*(i-1);
+    temp_SP_steps(i)=start_cnt+delta_t*(i-2);
 end
 
 end

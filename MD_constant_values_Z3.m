@@ -22,9 +22,10 @@ classdef MD_constant_values_Z3
         min_op_diff=6;                   % minimalny przedzia³ pomiêdzy dwoma linearyzacjami
         
         %% signals plot
-        plot_offset1=400;
-        plot_offset2=250;
-        font_size=25;
+        %plot_offset1=400;
+        %plot_offset2=250;
+        %font_size=25;
+        
         message_display=0;
         
         %% identification params
@@ -43,7 +44,7 @@ classdef MD_constant_values_Z3
         sum_sqr_difference=1;            % ró¿nica model-obiekt abs/sqr
         
         %sprawdznie interwa³ów (wariancja/korelacja)
-        var_corr_method=0;               % 0 - var, 1 - corr
+        var_corr_method=1;               % 0 - var, 1 - corr
         
         %identyfikacja dla nowego punktu pracy
         alternative_model_method=1;            % 0 - nowy interwal zerowy pierwszy, 1 - nowy interwa³ zerowy w srodku

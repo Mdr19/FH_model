@@ -222,9 +222,9 @@ elseif MD_constant_values.sim_mode_Z4==2
             MPC_model.Z4.Lzerot,MPC_model.Z4.M,h,u_mpc.Z4,MPC_model.Z4.X0,MPC_model.Z4.ctrl_offset,y_,sp_);
         %}
                         
-        temp_prev=[temp_zone_prev(max(1,ceil(time_index-delta_t))) temp_zone_prev(min(length(temp_zone_prev),time_index))];
-        temp_prev_=interp1(sp_t,temp_prev,time_)-MPC_model.Z4.output_offset;
-        y_sim=MD_simulate_prev_section_RK4(PZ_model.Z4.A,PZ_model.Z4.B,PZ_model.Z4.C,h,temp_prev_,PZ_model.Z4.X0);
+        %temp_prev=[temp_zone_prev(max(1,ceil(time_index-delta_t))) temp_zone_prev(min(length(temp_zone_prev),time_index))];
+        %temp_prev_=interp1(sp_t,temp_prev,time_)-MPC_model.Z4.output_offset;
+        %y_sim=MD_simulate_prev_section_RK4(PZ_model.Z4.A,PZ_model.Z4.B,PZ_model.Z4.C,h,temp_prev_,PZ_model.Z4.X0);
         %sp2_=sp_-y_sim';
        
        %{

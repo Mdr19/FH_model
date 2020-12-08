@@ -52,7 +52,7 @@ if ~isempty(MPC_model.Z3_new) && ~isempty(MPC_model.Z3_new_model_set) && MPC_mod
     
     MPC_model.Z3_saved=MPC_model.Z3_new;
 
-    
+    %{
     if ((abs(u_prev.Z3(1)-MD_constant_values.mix_press_min)<0.25 && temp_SP(end)<u(end)) || ...
             (abs(u_prev.Z3(1)-MD_constant_values.mix_press_max)<0.25 && temp_SP(end)>u(end))) && ...
             sum(MPC_model.Z3_saved.control_signals)==2
@@ -126,6 +126,84 @@ if ~isempty(MPC_model.Z3_new) && ~isempty(MPC_model.Z3_new_model_set) && MPC_mod
     else
         MPC_model.Z3=MPC_model.Z3_saved;
     end
+    %}
+    
+    if ((abs(u_prev.Z3(2)-MD_constant_values.cln_vlv_min)<1 && temp_SP(end)>u(end)) || ...
+            (abs(u_prev.Z3(2)-MD_constant_values.cln_vlv_max)<1 && temp_SP(end)<u(end))) && ...
+            sum(MPC_model.Z3_saved.control_signals)==2
+        disp('Mix. press ONLY - 2');
+        MPC_model.Z3.control_signals(2)=0;
+        if size(MPC_model.Z3_saved.B,2)==2
+            
+            n=size(MPC_model.Z3_saved.Omega,1)/2;
+            MPC_model.Z3.Omega=MPC_model.Z3_saved.Omega(1:n,1:n);
+            
+            m=size(MPC_model.Z3_saved.Psi,1)/2;
+            MPC_model.Z3.Psi=MPC_model.Z3_saved.Psi(1:m,:);
+            
+            MPC_model.Z3.Lzerot=MPC_model.Z3_saved.Lzerot(1,1:n);
+            
+            MPC_model.Z3.M=[];
+            
+            for i=1:size(MPC_model.Z3_saved.M,1)
+                if mod(i,2)==1
+                    MPC_model.Z3.M(ceil(i/2),:)=MPC_model.Z3_saved.M(i,1:n);
+                end
+            end
+            
+            MPC_model.Z3.A=MPC_model.Z3_saved.A;
+            MPC_model.Z3.B=MPC_model.Z3_saved.B(:,1);
+            MPC_model.Z3.C=MPC_model.Z3_saved.C;
+            MPC_model.Z3.K_ob=MPC_model.Z3_saved.K_ob;
+            MPC_model.Z3.control_signals=MPC_model.Z3_saved.control_signals;
+            MPC_model.Z3.control_signals(2)=0;
+            MPC_model.Z3.X0=MPC_model.Z3_saved.X0;
+            MPC_model.Z3.ctrl_offset=MPC_model.Z3_saved.ctrl_offset;
+            MPC_model.Z3.output_offset=MPC_model.Z3_saved.output_offset;
+        else
+             MPC_model.Z3=MPC_model.Z3_saved;
+        end
+           
+    elseif  ((abs(u_prev.Z3(1)-MD_constant_values.mix_press_min)<0.25 && temp_SP(end)<u(end)) || ...
+            (abs(u_prev.Z3(1)-MD_constant_values.mix_press_max)<0.25 && temp_SP(end)>u(end))) && ...
+            sum(MPC_model.Z3_saved.control_signals)==2
+        disp('Cln vlv ONLY - 2');
+        MPC_model.Z3.control_signals(1)=0;
+        if size(MPC_model.Z3_saved.B,2)==2
+            
+            n=size(MPC_model.Z3_saved.Omega,1)/2;
+            MPC_model.Z3.Omega=MPC_model.Z3_saved.Omega(n+1:end,n+1:end);
+            
+            m=size(MPC_model.Z3_saved.Psi,1)/2;
+            MPC_model.Z3.Psi=MPC_model.Z3_saved.Psi(m+1:end,:);
+            
+            MPC_model.Z3.Lzerot=MPC_model.Z3_saved.Lzerot(2,n+1:end);
+            
+            MPC_model.Z3.M=[];
+            
+            for i=1:size(MPC_model.Z3_saved.M,1)
+                if mod(i,2)==0
+                    MPC_model.Z3.M(ceil(i/2),:)=MPC_model.Z3_saved.M(i,n+1:end);
+                end
+            end
+            
+            MPC_model.Z3.A=MPC_model.Z3_saved.A;
+            MPC_model.Z3.B=MPC_model.Z3_saved.B(:,2);
+            MPC_model.Z3.C=MPC_model.Z3_saved.C;
+            MPC_model.Z3.K_ob=MPC_model.Z3_saved.K_ob;
+            MPC_model.Z3.control_signals=MPC_model.Z3_saved.control_signals;
+            MPC_model.Z3.control_signals(1)=0;
+            MPC_model.Z3.X0=MPC_model.Z3_saved.X0;
+            MPC_model.Z3.ctrl_offset=MPC_model.Z3_saved.ctrl_offset;
+            MPC_model.Z3.output_offset=MPC_model.Z3_saved.output_offset;
+        else
+             MPC_model.Z3=MPC_model.Z3_saved;
+        end
+    else
+        MPC_model.Z3=MPC_model.Z3_saved;
+    end
+    
+    u_mpc.Z3=u_prev.Z3-MPC_model.Z3.ctrl_offset';
     
     MPC_model.Z3_new_model_set=false;
     state_prev.Z3=MPC_model.Z3.X0;
@@ -331,7 +409,6 @@ elseif MD_constant_values.sim_mode_Z3==2 && MPC_model.Z3.control_signals(1)
         sp=[temp_SP(max(1,ceil(time_index-delta_t))) temp_SP(min(length(temp_SP),time_index))];
         sp_=interp1(sp_t,sp,time_)-MPC_model.Z3.output_offset;
         
-        disp('Fnc call');
         %MPC_model.Z3.M
         
         [u_mpc.Z3(1), MPC_model.Z3.X0]=MD_calculate_MPC_control_signal(MPC_model.Z3.A,MPC_model.Z3.B,...
@@ -396,6 +473,8 @@ elseif MD_constant_values.sim_mode_Z3==2 && MPC_model.Z3.control_signals(2)
                 
                 if E_temp>0 && E_int.Z3*Ki>max_int
                     E_int.Z3=max_int/Ki;
+                elseif E_temp<0 && E_int.Z3*Ki<-max_int
+                    E_int.Z3=-max_int/Ki;
                 else
                     E_int.Z3=E_int.Z3+E_temp*(t(1)-input_signal_applied.Z3_input_1(end,1));
                 end
@@ -431,7 +510,7 @@ elseif MD_constant_values.sim_mode_Z3==2 && MPC_model.Z3.control_signals(2)
         disp(['PID mix press. Time: ' num2str(time_temp) ' error: ' num2str(error) ' integral: ' num2str(E_int.Z3) ' control signal: ' num2str(result(1))]);
         
         u_prev.Z3(1,:)=result(1);
-        u_mpc.Z3(1,:)=result(1);
+        %u_mpc.Z3(1,:)=result(1);
         
         
         input_signal_applied.Z3_input_1=[input_signal_applied.Z3_input_1; [t(1) result(1)]];

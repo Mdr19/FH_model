@@ -1,6 +1,4 @@
 classdef MD_ident_section < handle
-    %UNTITLED3 Summary of this class goes here
-    %   Detailed explanation goes here
     
     properties
         inputs_nr;
@@ -40,9 +38,7 @@ classdef MD_ident_section < handle
     end
     
     methods
-        
         % class constructor
-        
         function obj = MD_ident_section(inputs_nr_,signals_names_,poly_coef,section_length_,filename_,method_params_)
             if nargin > 0
                 obj.inputs_nr = inputs_nr_;
@@ -59,7 +55,6 @@ classdef MD_ident_section < handle
         end
         
         %%
-        
         function define_interval(obj,start_index,end_index,message)
             
             disp('------------------------------------------------------------------------------------------------------------------------');
@@ -98,7 +93,6 @@ classdef MD_ident_section < handle
         end
         
         %%
-        
         function define_interval_plant(obj,section_sim,interval_nr)
             
             disp('-------------------------------------------------------------------------------------------------------');
@@ -125,7 +119,6 @@ classdef MD_ident_section < handle
         
         %%
         % Getting multiple signals from the plant
-        
         function get_signals_from_plant_ident_interval(obj,section_sim,interval_nr)
             
             for i=1:obj.inputs_nr
@@ -150,6 +143,7 @@ classdef MD_ident_section < handle
             
         end
         
+        %% MODEL IDENTIFICATION
         %%
         function ident_model_plant(obj,section_sim)
             if isempty(obj.current_model)
@@ -191,7 +185,7 @@ classdef MD_ident_section < handle
                         
                         %zmiana 13.09
                         ident_intervals=zeros(obj.inputs_nr,1);
-
+                        
                         
                         for i=obj.current_zero_point_interval:obj.current_interval-1
                             
@@ -210,10 +204,10 @@ classdef MD_ident_section < handle
                             
                             %sum_temp_prev=sum_temp;
                         end
-                                                
+                        
                         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                         
-                           %zmiana 13.10
+                        %zmiana 13.10
                         for j=1:obj.inputs_nr
                             if ident_intervals(j)>=obj.ident_method_params.new_model_min_inputs
                                 obj.ident_models(1).inputs_to_ident(j)=1;
@@ -318,44 +312,54 @@ classdef MD_ident_section < handle
                                     [obj.current_model, obj.current_model_params]=MD_model_ident_LSM_GS4(input_signals_ident,output_signal_ident',obj.ident_method_params,obj.current_model_nr*100);
                             end
                             
+                            % zmiana 02.12
                             
-                            obj.ident_models(1).intervals(1).initial_state=[];
-                            obj.current_initial_state=zeros(size(obj.current_model,2),obj.current_model_params.m-1);
-                            
-                            for i=1:length(obj.ident_models(1).intervals)
-                                obj.ident_models(1).intervals(i).initial_state=obj.current_initial_state;
-                                [obj.ident_models(1).intervals(i).simulated_output, obj.current_initial_state]=...
-                                    MD_simulate_MISO_system_output(obj.ident_models(1).intervals(i).input_signals,obj.current_initial_state,obj.current_model,0); %+obj.ident_models(1).offset_value;
-                                %obj.initial_states=[obj.initial_states obj.current_initial_state];
+                            if MD_check_model_prop_new(obj.current_model,obj.ident_models(1).inputs_to_ident,obj.current_model_params.n,[1 1 -1])
                                 
-                                obj.ident_models(1).intervals(i).model_diff=sumsqr(obj.ident_models(1).intervals(i).simulated_output-...
-                                    obj.ident_models(1).intervals(i).output_signal);
+                                obj.ident_models(1).intervals(1).initial_state=[];
+                                obj.current_initial_state=zeros(size(obj.current_model,2),obj.current_model_params.m-1);
                                 
-                                obj.ident_models(1).intervals(i).model=obj.current_model;
-                                %obj.ident_models(1).intervals(i).model_params=obj.current_model_params;
+                                for i=1:length(obj.ident_models(1).intervals)
+                                    obj.ident_models(1).intervals(i).initial_state=obj.current_initial_state;
+                                    [obj.ident_models(1).intervals(i).simulated_output, obj.current_initial_state]=...
+                                        MD_simulate_MISO_system_output(obj.ident_models(1).intervals(i).input_signals,obj.current_initial_state,obj.current_model,0); %+obj.ident_models(1).offset_value;
+                                    %obj.initial_states=[obj.initial_states obj.current_initial_state];
+                                    
+                                    obj.ident_models(1).intervals(i).model_diff=sumsqr(obj.ident_models(1).intervals(i).simulated_output-...
+                                        obj.ident_models(1).intervals(i).output_signal);
+                                    
+                                    obj.ident_models(1).intervals(i).model=obj.current_model;
+                                    %obj.ident_models(1).intervals(i).model_params=obj.current_model_params;
+                                    
+                                end
                                 
-                            end
-                            
-                            % zmiana model params
-                            obj.ident_models(1).model_params=obj.current_model_params;
-                            
-                            % zmiana 26.09
-                            obj.ident_models(1).zero_point_interval=obj.current_zero_point_interval;
-                            obj.signals_intervals(obj.current_zero_point_interval).op_interval_applied=true;
-                            
-                            % zmiana 11.06.2020
-                            if obj.ident_method_params.initial_state_method
-                                obj.current_initial_state=obj.obtain_system_state(input_signals_ident,output_signal_ident,obj.ident_method_params.T_ob);
-                                obj.ident_models(1).intervals(i+1).initial_state=obj.current_initial_state;
+                                % zmiana model params
+                                obj.ident_models(1).model_params=obj.current_model_params;
+                                
+                                % zmiana 26.09
+                                obj.ident_models(1).zero_point_interval=obj.current_zero_point_interval;
+                                obj.signals_intervals(obj.current_zero_point_interval).op_interval=true;
+                                
+                                % zmiana 11.06.2020
+                                if obj.ident_method_params.initial_state_method
+                                    obj.current_initial_state=obj.obtain_system_state(input_signals_ident,output_signal_ident,obj.ident_method_params.T_ob);
+                                    obj.ident_models(1).intervals(i+1).initial_state=obj.current_initial_state;
+                                else
+                                    obj.ident_models(1).intervals(i+1).initial_state=obj.current_initial_state;
+                                end
+                                
+                                
                             else
-                                obj.ident_models(1).intervals(i+1).initial_state=obj.current_initial_state;
+                                
+                               disp('Inappropriate initial model'); 
+                               obj.current_model=[];
+                                
                             end
                             
                         end
-                        
                     end
-                    
                 end
+                
             else
                 
                 % updating the current model parameters
@@ -404,14 +408,14 @@ classdef MD_ident_section < handle
                                     end
                                     
                                 else
-                                    [interval_type reident_model]=MD_model_reident_LSM_GS4(obj.current_model,obj.current_model_params,...
+                                    [interval_type, reident_model]=MD_model_reident_LSM_GS4(obj.current_model,obj.current_model_params,...
                                         obj.ident_models(obj.current_model_nr).inputs_to_ident,...
                                         input_signals_ident,output_signal_ident',ident_initial_state,obj.ident_method_params,iter);
                                 end
                                 
                             case 1
                                 
-                                 if(size(ident_initial_state,1))~=size(obj.current_model,2)
+                                if(size(ident_initial_state,1))~=size(obj.current_model,2)
                                     disp('OTHER INITIAL STATE NEEDED');
                                     %interval_type='N';
                                     
@@ -427,15 +431,21 @@ classdef MD_ident_section < handle
                                     end
                                     
                                 else
-                                    [interval_type reident_model]=MD_model_reident_LSM_GS5(obj.current_model,obj.current_model_params,...
+                                    [interval_type, reident_model]=MD_model_reident_LSM_GS5(obj.current_model,obj.current_model_params,...
                                         obj.ident_models(obj.current_model_nr).inputs_to_ident,...
                                         input_signals_ident,output_signal_ident',ident_initial_state,obj.ident_method_params,iter);
                                 end
                                 
                             otherwise
-                                [interval_type reident_model]=MD_MISO_model_reident(obj.current_model,obj.ident_models(obj.current_model_nr).inputs_to_ident,...
+                                [interval_type, reident_model]=MD_MISO_model_reident(obj.current_model,obj.ident_models(obj.current_model_nr).inputs_to_ident,...
                                     input_signals_ident,output_signal_ident,MISO_eta,ident_initial_state,iter);
                         end
+                        
+                        if interval_type~='N' && ~MD_check_model_prop_new(reident_model,obj.ident_models(obj.current_model_nr).inputs_to_ident,obj.current_model_params.n,[1 1 -1])
+                           disp('Inaproppriate reident model');
+                           interval_type='N'; 
+                        end
+                        
                         
                         if interval_type~='N'
                             disp('---------------------------------------------------');
@@ -460,8 +470,8 @@ classdef MD_ident_section < handle
             end
         end
         
+        %% SYSTEM OUTPUT SIMULATION
         %%
-        
         function simulate_model_output_plant(obj,section_sim,time_start,time_end)
             
             if ~isempty(obj.current_model)
@@ -530,16 +540,15 @@ classdef MD_ident_section < handle
                 
                 %zmiana 13.10
                 obj.ident_models(obj.current_model_nr).intervals_sim=[obj.ident_models(obj.current_model_nr).intervals_sim obj.current_interval-1];
-
+                
             end
             
         end
         
-        
+        %% ALTERNATIVE MODEL IDENTIFICATION
         %%
-        
         function ident_alternative_model_plant(obj,section_sim)
-            if ~isempty(obj.current_model) && isempty(obj.alternative_model)
+            if ~isempty(obj.current_model) && isempty(obj.alternative_model) && obj.ident_models(obj.current_model_nr).intervals(end-1).model_diff>obj.ident_method_params.model_change_threshold
                 
                 %find the new operating point
                 op_found=0;
@@ -551,15 +560,15 @@ classdef MD_ident_section < handle
                         start_int=max(1,i-obj.ident_method_params.min_op_diff);
                         prev_interval=zeros(1,obj.ident_method_params.min_op_diff);
                         cnt=1;
-
-                         for j=start_int:i-1
-                            if obj.signals_intervals(j).op_interval          % .op_interval_possible ¿eby byb³o jak poprzednio
+                        
+                        for j=start_int:i-1
+                            if obj.signals_intervals(j).op_interval          % .op_interval_possible ¿eby by³o jak poprzednio
                                 prev_interval(cnt)=1;
                             end
                             cnt=cnt+1;
                         end
                         
-                         if sum(prev_interval)>0
+                        if sum(prev_interval)>0
                             disp('Cannot identify');
                             op_found=0;
                         else
@@ -591,7 +600,7 @@ classdef MD_ident_section < handle
                         
                         %zmiana 13.10
                         ident_intervals=zeros(obj.inputs_nr,1);
-
+                        
                         for i=obj.current_interval-obj.ident_method_params.new_model_intervals:obj.current_interval-1
                             for j=1:obj.inputs_nr
                                 if obj.signals_intervals(i).model_inputs(j)
@@ -608,7 +617,7 @@ classdef MD_ident_section < handle
                         end
                         
                         
-                         %zmiana 13.10
+                        %zmiana 13.10
                         for j=1:obj.inputs_nr
                             if ident_intervals(j)>=obj.ident_method_params.new_model_min_inputs
                                 inputs_to_ident(j)=1;
@@ -730,7 +739,7 @@ classdef MD_ident_section < handle
                             
                             % zmiana 12.09
                             obj.alternative_model.intervals_sim=[];
-  
+                            
                         end
                         
                     end
@@ -814,7 +823,9 @@ classdef MD_ident_section < handle
                                             end
                                             
                                         end
+                                        
                                         n=n+1;
+                                        
                                     end
                                 end
                                 
@@ -832,7 +843,6 @@ classdef MD_ident_section < handle
                                     obj.alternative_model.intervals(mod_int_nr).time=start_time:end_time;
                                     obj.alternative_model.intervals(mod_int_nr).interval_type='I';
                                 end
-                                
                             end
                             
                             mod_int_nr=mod_int_nr+1;
@@ -844,6 +854,7 @@ classdef MD_ident_section < handle
                             %odejmij offset od sygna³ów
                             for i=1:mod_int_nr-1
                                 k=1;
+                                
                                 for j=1:obj.inputs_nr+1
                                     if j<=obj.inputs_nr
                                         if obj.alternative_model.inputs_to_ident(j)==1
@@ -856,7 +867,6 @@ classdef MD_ident_section < handle
                                             obj.alternative_model.intervals(i).output_signal-obj.alternative_model.offset_value(end);
                                     end
                                 end
-                                
                             end
                             
                             % opóŸnienie i ograniczenia
@@ -888,7 +898,7 @@ classdef MD_ident_section < handle
                             
                             [obj.alternative_model.model, obj.alternative_model.model_params, obj.alternative_model.current_initial_state]=...
                                 MD_model_ident_LSM_nonzero(input_signals_ident,output_signal_ident',obj.ident_method_params,plot_cnt);
-
+                            
                             
                             % który w kolejnoœci jest interwa³ z punktem
                             % zerowym
@@ -924,19 +934,14 @@ classdef MD_ident_section < handle
                             
                             % zmiana 13.10
                             obj.alternative_model.intervals_sim=[];
-
                             
                         end
-                        
                     end
-                    
-                    
                 end
-                
             end
-            
         end
         
+        %% MPC MODEL IDENTIFICATION
         %%
         function obtain_MPC_model(obj,N_,p_,Tp,h)
             if ~isempty(obj.current_model)
@@ -952,7 +957,7 @@ classdef MD_ident_section < handle
                 
                 
                 if start_model_nr>1
-                                    
+                    
                     if size(obj.current_model)==1
                         obj.PZ_model.A=obj.current_model.A;
                         obj.PZ_model.B=obj.current_model.B(:,1);
@@ -968,25 +973,25 @@ classdef MD_ident_section < handle
                         obj.PZ_model.D=obj.current_model(1).D;
                         obj.PZ_model.X0=obj.current_initial_state(:,1);
                     end
-
-                end
                     
+                end
+                
                 if size(obj.current_model)==1
-                    Ac=obj.current_model.A; 
+                    Ac=obj.current_model.A;
                     Bc=obj.current_model.B(:,start_model_nr:end);
                     Cc=zeros(1,size(Ac,1));
                     Cc(1,size(Ac,1))=1;
-                       
+                    
                     X0=obj.current_model.A*obj.current_initial_state'+...
-                    obj.current_model.B(:,start_model_nr:end)*(obj.signals_intervals(end).original_signals(start_model_nr:start_model_nr+size(obj.current_model.B,2)-start_model_nr,end)-...
-                    obj.ident_models(obj.current_model_nr).offset_value(start_model_nr:start_model_nr+size(obj.current_model.B,2)-start_model_nr)');
+                        obj.current_model.B(:,start_model_nr:end)*(obj.signals_intervals(end).original_signals(start_model_nr:start_model_nr+size(obj.current_model.B,2)-start_model_nr,end)-...
+                        obj.ident_models(obj.current_model_nr).offset_value(start_model_nr:start_model_nr+size(obj.current_model.B,2)-start_model_nr)');
                     X0=[X0; obj.signals_intervals(end).original_signals(3,end)-...
-                    obj.ident_models(obj.current_model_nr).offset_value(end)];
-    
+                        obj.ident_models(obj.current_model_nr).offset_value(end)];
+                    
                     
                     n=rank(obj.current_model.A);
                     X0=[zeros(n,1); obj.signals_intervals(end).original_signals(3,end)-...
-                    obj.ident_models(obj.current_model_nr).offset_value(end)];
+                        obj.ident_models(obj.current_model_nr).offset_value(end)];
                     
                 else
                     Ac=obj.current_model(start_model_nr).A;
@@ -995,15 +1000,15 @@ classdef MD_ident_section < handle
                     Cc(1,size(Ac,1))=1;
                     
                     X0=obj.current_model(start_model_nr).A*obj.current_initial_state(start_model_nr,:)'+...
-                    obj.current_model(start_model_nr).B*(obj.signals_intervals(end).original_signals(start_model_nr:start_model_nr+size(obj.current_model(start_model_nr).B,2)-1,end)-...
-                    obj.ident_models(obj.current_model_nr).offset_value(start_model_nr:start_model_nr+size(obj.current_model(start_model_nr).B,2)-1)');
+                        obj.current_model(start_model_nr).B*(obj.signals_intervals(end).original_signals(start_model_nr:start_model_nr+size(obj.current_model(start_model_nr).B,2)-1,end)-...
+                        obj.ident_models(obj.current_model_nr).offset_value(start_model_nr:start_model_nr+size(obj.current_model(start_model_nr).B,2)-1)');
                     X0=[X0; obj.signals_intervals(end).original_signals(3,end)-...
                         obj.ident_models(obj.current_model_nr).offset_value(end)];
                     
                     
                     n=rank(obj.current_model(2).A);
                     X0=[zeros(n,1); obj.signals_intervals(end).original_signals(3,end)-...
-                    obj.ident_models(obj.current_model_nr).offset_value(end)];
+                        obj.ident_models(obj.current_model_nr).offset_value(end)];
                     
                 end
                 
@@ -1011,7 +1016,7 @@ classdef MD_ident_section < handle
                 
                 [m1,n1]=size(Cc);
                 [n1,n_in]=size(Bc);
-
+                
                 %m1=1;
                 
                 A=zeros(n1+m1,n1+m1);
@@ -1030,7 +1035,7 @@ classdef MD_ident_section < handle
                 
                 R=R*eye(size(B,2),size(B,2));
                 p=p_*ones(1,size(B,2));    % 0.6
-                N=N_*ones(1,size(B,2));      %bylo 3          
+                N=N_*ones(1,size(B,2));      %bylo 3
                 %Tp=150;     %100  250  150
                 
                 obj.MPC_model.A=A;
@@ -1039,14 +1044,14 @@ classdef MD_ident_section < handle
                 obj.MPC_model.K_ob=K_ob';
                 obj.MPC_model.Q=Q;
                 obj.MPC_model.R=R;
-
+                
                 [obj.MPC_model.Omega,obj.MPC_model.Psi]=cmpc(A,B,p,N,Tp,Q,R);
-
+                
                 toc
                 
                 obj.MPC_model.ctrl_offset=obj.ident_models(obj.current_model_nr).offset_value(start_model_nr:start_model_nr+size(B,2)-1);
                 obj.MPC_model.output_offset=obj.ident_models(obj.current_model_nr).offset_value(end);
-                                
+                
                 obj.MPC_model.control_signals=obj.ident_models(obj.current_model_nr).inputs_to_ident(2:end);
                 
                 % zerowa probka
@@ -1054,7 +1059,7 @@ classdef MD_ident_section < handle
                 [Al,L0]=lagc(p(k0),N(k0));
                 L_t=zeros(n_in,sum(N));
                 L_t(1,1:N(1))=L0';
-
+                
                 % gdy wiecej kolumn w macierzy B
                 cc=N(1);
                 for k0=2:n_in;
@@ -1062,7 +1067,7 @@ classdef MD_ident_section < handle
                     L_t(k0,cc+1:cc+N(k0))=L0';
                     cc=cc+N(k0);
                 end
-
+                
                 obj.MPC_model.Lzerot=L_t;
                 
                 % for constraints
@@ -1073,7 +1078,6 @@ classdef MD_ident_section < handle
                 
             end
         end
-        
         
         %%
         function delete_first_intervals(obj,number_of_intervals_to_delete)
@@ -1093,7 +1097,6 @@ classdef MD_ident_section < handle
         
         %%
         % Getting multiple signals from file
-        
         function get_signals_from_file_ident_interval(obj,start_index,end_index,message)
             
             for i=1:obj.inputs_nr+3
@@ -1105,7 +1108,6 @@ classdef MD_ident_section < handle
         
         %%
         % Getting single signal from file for ident intervals
-        
         function get_signal_from_file_ident_interval(obj,file_name,signal_nr,start_index,end_index,message)
             fid = fopen(file_name);
             varNames = strsplit(fgetl(fid), ';');
@@ -1159,7 +1161,6 @@ classdef MD_ident_section < handle
         
         %%
         % Getting single signal from file
-        
         function read_signal = get_signal_from_file(obj,file_name,signal_nr,start_index,end_index,message)
             fid = fopen(file_name);
             varNames = strsplit(fgetl(fid), ';');
@@ -1242,6 +1243,9 @@ classdef MD_ident_section < handle
             cnt1=1;
             y_dot_lin=[];
             
+            % zmiana 30.11.2020
+            obj.signals_intervals(obj.current_interval).op_interval_possible=false;
+            
             while cnt1<length(current_out)
                 cnt1=cnt1+1;
                 
@@ -1308,15 +1312,20 @@ classdef MD_ident_section < handle
             for i=1:obj.inputs_nr
                 
                 disp(['Var is equal ' num2str(var(obj.signals_intervals(obj.current_interval).original_signals(i,:))) ' Cor is equal '...
-                num2str(corr(obj.signals_intervals(obj.current_interval).original_signals(i,:)', obj.signals_intervals(obj.current_interval).original_signals(end-2,:)'))]);
+                    num2str(corr(obj.signals_intervals(obj.current_interval).original_signals(i,:)', obj.signals_intervals(obj.current_interval).original_signals(end-2,:)'))]);
                 
                 if obj.ident_method_params.var_corr_method==0
                     if var(obj.signals_intervals(obj.current_interval).original_signals(i,:))>obj.ident_method_params.var_threshold;
                         obj.signals_intervals(obj.current_interval).model_inputs(i)=1;
                     end
-                else
+                elseif obj.ident_method_params.var_corr_method==1
                     if abs(corr(obj.signals_intervals(obj.current_interval).original_signals(i,:)', obj.signals_intervals(obj.current_interval).original_signals(end-2,:)'))>...
                             obj.ident_method_params.corr_threshold;
+                        obj.signals_intervals(obj.current_interval).model_inputs(i)=1;
+                    end
+                else
+                    if (abs(corr(obj.signals_intervals(obj.current_interval).original_signals(i,:)', obj.signals_intervals(obj.current_interval).original_signals(end-2,:)'))>...
+                            obj.ident_method_params.corr_threshold) && (var(obj.signals_intervals(obj.current_interval).original_signals(i,:))>obj.ident_method_params.var_threshold)
                         obj.signals_intervals(obj.current_interval).model_inputs(i)=1;
                     end
                 end
@@ -1328,6 +1337,7 @@ classdef MD_ident_section < handle
             obj.current_model=[];
         end
         
+        %% MODEL IDENTIFICATION
         %%
         function ident_model(obj)
             if isempty(obj.current_model)
@@ -1506,7 +1516,7 @@ classdef MD_ident_section < handle
                                     [obj.current_model, obj.current_model_params]=MD_model_ident_LSM_GS4(input_signals_ident,output_signal_ident,obj.ident_method_params,obj.current_model_nr*100);
                                 case 1
                                     %[obj.current_model, obj.current_model_params]=MD_model_ident_LSM_GS4(input_signals_ident,output_signal_ident,obj.current_model_nr*100);
-                                    ident_offset_intervals
+                                    %ident_offset_intervals
                                     [obj.current_model, obj.current_model_params]=MD_model_ident_LSM_GS5(input_signals_ident,output_signal_ident,obj.ident_method_params,obj.current_model_nr*100);
                                 otherwise
                                     [obj.current_model, obj.current_model_params]=MD_model_ident_LSM_GS5(input_signals_ident,output_signal_ident,obj.ident_method_params,obj.current_model_nr*100);
@@ -1654,16 +1664,17 @@ classdef MD_ident_section < handle
             end
         end
         
+        %% ALTERNATIVE MODEL IDENTIFICATION
         %%
         function ident_alternative_model(obj)
-            if ~isempty(obj.current_model) && isempty(obj.alternative_model)
+            if ~isempty(obj.current_model) && isempty(obj.alternative_model) %&& obj.ident_models(obj.current_model_nr).intervals(end-1).model_diff>obj.ident_method_params.model_change_threshold
                 
                 %find the new operating point
                 op_found=0;
                 
-                sum_temp=0;
-                ident_offset_intervals=0;
-                ident_intervals=0;
+                %sum_temp=0;
+                %ident_offset_intervals=0;
+                %ident_intervals=0;
                 
                 disp(['Finding OP alternative ' num2str(obj.current_interval-obj.ident_method_params.new_model_intervals) ' ' num2str(obj.current_interval-1)]);
                 for i=obj.current_interval-obj.ident_method_params.new_model_intervals:obj.current_interval-1
@@ -2172,6 +2183,7 @@ classdef MD_ident_section < handle
             end
         end
         
+        %% SYSTEM OUTPUT SIMULATION
         %%
         
         function simulate_model_output(obj,time_start,time_end)
@@ -2244,6 +2256,7 @@ classdef MD_ident_section < handle
             
         end
         
+        %% STATE OBSERVATION
         %%
         function system_state=obtain_system_state(obj,sys_inputs,sys_output,ident_horizon)
             
@@ -2253,7 +2266,7 @@ classdef MD_ident_section < handle
             if length(obj.current_model)>1
                 n=length(obj.current_model(1).A);
                 C_=[];
-                D_=[];
+                %D_=[];
                 
                 for i=1:length(obj.current_model) %current_inputs_nr
                     g_=zeros(1,n);
@@ -2383,17 +2396,20 @@ classdef MD_ident_section < handle
             
         end
         
-        %%
-        function plot_signals(obj,figure_nr,titles,y_labels,plot_intervals,plot_sim_intervals,plot_pull)
+        %% PLOTING SIGNALS
+        
+        function plot_signals(obj,figure_nr,titles,y_labels,plot_intervals,plot_sim_intervals,plot_pull,plot_str)
             
             plot_signals=[];
-            f_size=25;
-            
+            %f_size=25;
+            fig=figure(figure_nr);
+            %{
             if nargin > 1
                 fig=figure(figure_nr);
             else
                 fig=figure(100);
             end
+            %}
             
             fig.Color=[1 1 1];
             
@@ -2441,7 +2457,7 @@ classdef MD_ident_section < handle
                 box on;
                 grid on;
                 title(titles(i), 'interpreter', 'latex');
-                set(gca,'fontsize',f_size)
+                set(gca,'fontsize',plot_str.font_size_1)
                 set(gca, 'xticklabel', []);
                 y=ylabel(y_labels{i}, 'rot', 90, 'interpreter', 'latex');  % do not rotate the y label
                 set(y, 'Units', 'Normalized', 'Position', [-0.1, 0.5, 0]);
@@ -2475,14 +2491,17 @@ classdef MD_ident_section < handle
                 end
             end
             
+            min_output_plot=min(plot_signals(obj.inputs_nr+1,:));
+            max_output_plot=max(plot_signals(obj.inputs_nr+1,:));
+            
             if plot_sim_intervals
                 for m=1:obj.current_model_nr
                     for i=1:length(obj.ident_models(m).intervals)-1
                         plot(obj.ident_models(m).intervals(i).time, obj.ident_models(m).intervals(i).simulated_output+obj.ident_models(m).offset_value(end),'m');
                         
                         if ~isempty(obj.ident_models(m).intervals(i).interval_type)
-                            text(0.5*(obj.ident_models(m).intervals(i).time(1)+obj.ident_models(m).intervals(i).time(end)),obj.ident_models(m).offset_value(end),...
-                                obj.ident_models(m).intervals(i).interval_type,'FontSize',obj.ident_method_params.font_size, 'Interpreter', 'latex');
+                            text(0.5*(obj.ident_models(m).intervals(i).time(1)+obj.ident_models(m).intervals(i).time(end)),(min_output_plot+max_output_plot)*0.5,...
+                                obj.ident_models(m).intervals(i).interval_type,'FontSize', plot_str.font_size_1, 'Interpreter', 'latex');
                         end
                     end
                 end
@@ -2492,7 +2511,7 @@ classdef MD_ident_section < handle
             xlim([obj.signals_intervals(1).time(1) obj.signals_intervals(end).time(end)]);
             title('Output temperature and temperature set point', 'interpreter', 'latex');
             %xlabel('Time [s]', 'interpreter', 'latex');
-            set(gca,'fontsize',f_size)
+            set(gca,'fontsize',plot_str.font_size_1)
             if plot_pull
                 set(gca, 'xticklabel', []);
             else
@@ -2524,7 +2543,7 @@ classdef MD_ident_section < handle
                 xlim([obj.signals_intervals(1).time(1) obj.signals_intervals(end).time(end)]);
                 title('Forehearth pull', 'interpreter', 'latex');
                 xlabel('Time [s]', 'interpreter', 'latex');
-                set(gca,'fontsize',f_size)
+                set(gca,'fontsize',plot_str.font_size_1)
                 y=ylabel(['Pull [t/24h]'], 'rot', 90, 'interpreter', 'latex');  % do not rotate the y label
                 set(y, 'Units', 'Normalized', 'Position', [-0.1, 0.5, 0]);
                 box on;
@@ -2532,6 +2551,7 @@ classdef MD_ident_section < handle
                 
             end
             
+            % Big plot for simulated temperature and real data
             
             if nargin > 1
                 fig=figure(figure_nr+400);
@@ -2545,8 +2565,11 @@ classdef MD_ident_section < handle
             min_values=[];
             max_values=[];
             
-            min_output_plot=min(plot_signals(obj.inputs_nr+1,:));
-            max_output_plot=max(plot_signals(obj.inputs_nr+1,:));
+            %min_output_plot=min(plot_signals(obj.inputs_nr+1,:));
+            %max_output_plot=max(plot_signals(obj.inputs_nr+1,:));
+            
+            % op number for graph
+            op_number=1;
             
             for k=1:obj.current_interval-1
                 if isempty(obj.signals_intervals(k).original_signals)==0
@@ -2561,6 +2584,11 @@ classdef MD_ident_section < handle
                         if obj.signals_intervals(k).op_interval
                             plot([obj.signals_intervals(k).op_time obj.signals_intervals(k).op_time],...
                                 [min_output_plot,max_output_plot],'k--');
+                            text(obj.signals_intervals(k).op_time,min_output_plot-plot_str.offset_1,...
+                                ['$t_{' num2str(op_number) '}$'],'FontSize',plot_str.font_size_1,'Interpreter', 'latex');
+                            %['t_{' num2str(op_number) '}'],'FontSize',obj.ident_method_params.font_size);
+                            
+                            op_number=op_number+1;
                         end
                     end
                     
@@ -2570,18 +2598,26 @@ classdef MD_ident_section < handle
                 end
             end
             
+            % letter position
+            % pos_y=obj.ident_models(1).offset_value(end);
+            
             for m=1:obj.current_model_nr
                 for i=1:length(obj.ident_models(m).intervals)-1
                     
                     if m>1 && ~isempty(obj.ident_models(m).intervals(i).interval_type) && obj.ident_models(m).intervals(i).interval_type=='I'
                         %plot(obj.ident_models(m).intervals(i).time, obj.ident_models(m).intervals(i).simulated_output+obj.ident_models(m).offset_value(end),'c');
                     else
-                        p3=plot(obj.ident_models(m).intervals(i).time, obj.ident_models(m).intervals(i).simulated_output+obj.ident_models(m).offset_value(end),'m');
+                        p3=plot(obj.ident_models(m).intervals(i).time, obj.ident_models(m).intervals(i).simulated_output+obj.ident_models(m).offset_value(end),'m','LineWidth',1.5);
                     end
                     
                     if obj.ident_models(m).intervals(i).interval_type=='R' %~isempty(obj.ident_models(m).intervals(i).interval_type)
-                        text(0.5*(obj.ident_models(m).intervals(i).time(1)+obj.ident_models(m).intervals(i).time(end)),obj.ident_models(m).offset_value(end),...
-                            obj.ident_models(m).intervals(i).interval_type,'FontSize',obj.ident_method_params.font_size, 'Interpreter', 'latex');
+                        %text(0.5*(obj.ident_models(m).intervals(i).time(1)+obj.ident_models(m).intervals(i).time(end)),obj.ident_models(m).offset_value(end),...
+                        %    ['$' num2str(obj.ident_models(m).intervals(i).interval_type) '$'],'FontSize',obj.ident_method_params.font_size, 'Interpreter', 'latex');
+                        
+                        % obj.ident_models(1).offset_value(end)
+                        
+                        text(obj.ident_models(m).intervals(i).time(1)+plot_str.offset_2,(min_output_plot+max_output_plot)*0.5,...
+                            ['$' num2str(obj.ident_models(m).intervals(i).interval_type) '$'],'FontSize',plot_str.font_size_1, 'Interpreter', 'latex');
                     end
                     
                 end
@@ -2589,9 +2625,9 @@ classdef MD_ident_section < handle
                 
             end
             
-            ylim([min(min_values)*0.99 max(max_values)*1.01]);
+            ylim([min(min_values)-plot_str.offset_4 max(max_values)+plot_str.offset_4]);
             xlabel('Time [s]', 'interpreter', 'latex');
-            set(gca,'fontsize',f_size)
+            set(gca,'fontsize',plot_str.font_size_1)
             y=ylabel(['Temp. [$^\circ$C]'], 'rot', 90, 'interpreter', 'latex');  % do not rotate the y label
             set(y, 'Units', 'Normalized', 'Position', [-0.1, 0.5, 0]);
             box on;
@@ -2607,10 +2643,19 @@ classdef MD_ident_section < handle
                 
                 p4=patch([x_start x_end x_end x_start],...
                     [min_output_plot min_output_plot  max_output_plot max_output_plot],...
-                    [0 1 1],'FaceAlpha',0.1,'LineStyle','none');
+                    [0 1 0],'FaceAlpha',0.1,'LineStyle','none');
                 %annotation('textarrow',[x_start x_end],[max(plot_signals(obj.inputs_nr+1,:)) max(plot_signals(obj.inputs_nr+1,:))],'FontSize',13,'Linewidth',2)
                 
-                text(x_start+obj.ident_method_params.T_sim*0,0.5*(min_output_plot+max_output_plot),'INITIAL MODEL','FontSize',obj.ident_method_params.font_size, 'Interpreter', 'latex');
+                if plot_str.lines_nr==1
+                    text(x_start+plot_str.offset_3,0.5*(min_output_plot+max_output_plot),'$INITIAL \; MODEL$','FontSize',...
+                        plot_str.font_size_1, 'Interpreter', 'latex');
+                else
+                    text(x_start+plot_str.offset_3,0.5005*(min_output_plot+max_output_plot),'$INITIAL$','FontSize',...
+                        plot_str.font_size_2, 'Interpreter', 'latex');
+                    
+                    text(x_start+plot_str.offset_3,0.4995*(min_output_plot+max_output_plot),'$MODEL$','FontSize',...
+                        plot_str.font_size_2, 'Interpreter', 'latex');
+                end
                 
                 interval_offset=0;
                 for i=1:length(obj.ident_models)
@@ -2620,7 +2665,7 @@ classdef MD_ident_section < handle
                     if length(obj.ident_models(i).intervals_sim)>0
                         x_start=obj.ident_models(i).intervals(length(obj.ident_models(i).intervals)-length(obj.ident_models(i).intervals_sim)).time(1);
                         x_end=obj.ident_models(i).intervals(end-1).time(end);
-                        interval_prev_end=obj.ident_models(i).intervals_sim(end);
+                        %interval_prev_end=obj.ident_models(i).intervals_sim(end);
                         
                         if mod(i,2)==0
                             p5=patch([x_start x_end x_end x_start],...
@@ -2629,7 +2674,7 @@ classdef MD_ident_section < handle
                         else
                             p6=patch([x_start x_end x_end x_start],...
                                 [min_output_plot min_output_plot  max_output_plot max_output_plot],...
-                                [1 0 1],'FaceAlpha',0.1,'LineStyle','none');
+                                [0 1 1],'FaceAlpha',0.1,'LineStyle','none');
                         end
                     end
                     
@@ -2638,7 +2683,86 @@ classdef MD_ident_section < handle
             end
             
             % legend
-            legend([p1 p2 p3], 'Simulated temperature','Temperature set point','MFM model','Location','southeast');
+            if plot_str.legend_loc==1
+                legend([p1 p2 p3], 'Simulated temperature','Temperature set point','MFM model','Location','northeast');
+            else
+                legend([p1 p2 p3], 'Simulated temperature','Temperature set point','MFM model','Location','southeast');
+            end
+            
+        end
+        
+        %%
+        
+        function plot_eigenvalues(obj,plot_str,figure_nr)
+            
+            if nargin > 2
+                fig=figure(figure_nr);
+            else
+                fig=figure(101);
+            end
+            
+            fig.Color=[1 1 1];
+            %f_size=25;
+            
+            hold on;
+            
+            model_nr=1;
+            plot_leg=[];
+            %plot2_leg=[];
+            p1=[];
+            p2=[];
+            
+            
+            % 1 input
+            
+            for i=1:length(obj.ident_models)
+                %prev_interval=' ';
+                for j=1:length(obj.ident_models(i).intervals)
+                    %obj.ident_models(i).intervals(j).interval_type
+                    if ~isempty(obj.ident_models(i).intervals(j).interval_type) &&...
+                            ((obj.ident_models(i).intervals(j).interval_type=='R' && j~=length(obj.ident_models(i).intervals)) || ...
+                            (obj.ident_models(i).intervals(j).interval_type=='I' && j==1))
+                        
+                        %disp('---------------------------------------');
+                        
+                        eig_temp=eig(obj.ident_models(i).intervals(j).model(1).A);
+                        %if isreal(eig_temp)
+                        subplot(1,2,1);
+                        p1(model_nr)=plot(real(eig_temp),imag(eig_temp),'*');
+                        hold on;
+                        
+                        if length(obj.ident_models(i).intervals(j).model)==2
+                            %p(model_nr)
+                            subplot(1,2,2);
+                            eig_temp=eig(obj.ident_models(i).intervals(j).model(2).A);
+                            p2(model_nr)=plot(real(eig_temp),imag(eig_temp),'o');
+                            %plot_leg{model_nr}= strcat('model ', num2str(model_nr));
+                        else
+                            %p(model_nr)=
+                            subplot(1,2,2);
+                            eig_temp=eig(obj.ident_models(i).intervals(j).model(1).A);
+                            p2(model_nr)=plot(real(eig_temp),imag(eig_temp),'*');
+                            %plot_leg{model_nr}= strcat('model ', num2str(model_nr));
+                            
+                        end
+                        plot_leg{model_nr}= strcat('model ', num2str(model_nr));
+                        %plot_leg{model_nr}= strcat('model ', num2str(model_nr));
+                        hold on;
+                        model_nr=model_nr+1;
+                    end
+                end
+            end
+            
+            subplot(1,2,1);
+            title('Previous section model eigenvalues');
+            grid on;
+            legend(p1,plot_leg,'Location','best');
+            set(gca,'fontsize',plot_str.font_size_1);
+            subplot(1,2,2);
+            title('Control model eigenvalues');
+            legend(p2,plot_leg,'Location','best');
+            set(gca,'fontsize',plot_str.font_size_1);
+            grid on;
             
         end
         

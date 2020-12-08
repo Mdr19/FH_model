@@ -81,7 +81,7 @@ for kk=1:N_sim;
         elseif u(1)<u_min(1)
             active_constraints(2)=1;
         end
-    
+        
         if udot(1)>Deltau_max(1)
             active_constraints(3)=1;
             %h=0.0001;
@@ -98,7 +98,7 @@ for kk=1:N_sim;
             active_constraints(3)=1;
         end
         
-         if u(2)>u_max(2)
+        if u(2)>u_max(2)
             active_constraints(2)=1;
         elseif u(2)<u_min(2)
             active_constraints(4)=1;
@@ -134,31 +134,39 @@ for kk=1:N_sim;
             gamma_act=[gamma_act; gamma(i,:)];
         end
     end
-        
+    
+    udot_prev=udot;
     
     if sum(active_constraints)>0
         %h=0.00001;
+        
         l_act=-inv((M_act*inv(Omega)*M_act'))*(gamma_act+M_act*inv(Omega)*(Psi*Xf));
         eta=-Omega\(Psi*Xf)-Omega\(M_act'*l_act);
         udot=Lzerot*eta;
         
+        %udot_prev
+        
     end
     
     
-     if n_in==1
+    if n_in==1
         
-         if isnan(udot)
+        if isnan(udot)
             %udot=udot_prev;
-            udot=zeros(n_in,1);
-  
-         else
+            if udot_prev>Deltau_max(1)
+                udot(1)=min(Deltau_max(1),(u_max(1)-u(1))/h);
+            elseif udot_prev<Deltau_min(1)
+                udot(1)=max(Deltau_min(1),(u_min(1)-u(1))/h);
+            end
+            
+        else
             
             if udot(1)>Deltau_max(1)
                 %udot(1)=Deltau_max(1);
-                udot(1)=min(Deltau_max(1),(u_max(1)-u)/h);
+                udot(1)=min(Deltau_max(1),(u_max(1)-u(1))/h);
             elseif udot(1)<Deltau_min(1)
                 %udot(1)=Deltau_min(1);
-                udot(1)=max(Deltau_min(1),(u_min(1)-u)/h);
+                udot(1)=max(Deltau_min(1),(u_min(1)-u(1))/h);
             end
             
         end
@@ -167,7 +175,20 @@ for kk=1:N_sim;
         
         if isnan(udot)
             %udot=udot_prev;
-            udot=zeros(n_in,1);
+            %udot=zeros(n_in,1);
+            
+            if udot_prev(1)>Deltau_max(1)
+                udot(1)=min(Deltau_max(1),(u_max(1)-u(1))/h);
+            elseif udot_prev(1)<Deltau_min(1)
+                udot(1)=max(Deltau_min(1),(u_min(1)-u(1))/h);
+            end
+            
+            if udot_prev(2)>Deltau_max(2)
+                udot(2)=min(Deltau_max(2),(u_max(2)-u(2))/h);
+            elseif udot_prev(2)<Deltau_min(2)
+                udot(2)=max(Deltau_min(2),(u_min(2)-u(2))/h);
+            end
+            
             %{
     elseif sum(udot>Deltau_max)>0
         for i=1:length(udot)
@@ -237,7 +258,7 @@ for kk=1:N_sim;
     
     
     %X_hat=X_hat+(A*X_hat+K_ob*(y(kk)-C*X_hat))*h+B*udot*h;
-    
+    %udot
     
     u=u+udot*h;
     gamma=[u_max'-u;-u_min'+u;Deltau_max';-Deltau_min'];
@@ -245,7 +266,7 @@ for kk=1:N_sim;
 end
 
 %disp(['Single iter, init. error: '  num2str(num2str(y(1)-sp(1))) ', X_hat: ' num2str(X_hat')  ', Xsp: ' num2str(Xsp')]);
-disp(['Single iter, init. error: '  num2str(num2str(y(1)-sp(1))) ', X_hat: ' num2str(X_hat')  ', Xsp: ' num2str(Xsp') ', ctrl. ' num2str(u'+u_offset) ' u dot ' num2str(udot')]);
+disp(['Single iter, init. error: '  num2str(num2str(sp(1)-y(1))) ', X_hat: ' num2str(X_hat')  ', Xsp: ' num2str(Xsp') ', ctrl. ' num2str(u'+u_offset) ' u dot ' num2str(udot')]);
 
 end
 

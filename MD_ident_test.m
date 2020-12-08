@@ -48,11 +48,55 @@ T=MD_constant_values.T_sim; %1000
 % 504 - 08.30.17 - skok nieudane - BAD dla Z4 nowe, OK w miare dla Z3
 % 505 - 17.10.24 - skoki nieudane, BAD dla Z4 new,
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% NOWE KOMENTARZE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% 0 - 02.17      - OK dla Z3, BAD dla Z4
+
+% skok
+
+% 101 - 04.23    - OK wzorcowy dla Z3 (z reident.), OK wzorcowy dla Z4 (z reident.)
+% 102 - 05.31    - OK dla Z3 (niestabilne modele, z reident dla 2. modelu), OK dla Z4 (niestabilny model nr 3., z reident dla kilku)
+% 103 - 06.26    - OK dla Z3, BAD dla Z4
+% 104 - 01.23    - BAD dla Z3, BAD dla Z4
+% 105 - 03.01    - BAD dla Z3 (niestabilne modele), srednio dla Z4 (bez reident.)
+% 106 - 17.09.27 - srednio dla Z3, OK dla Z4 (z reident.)
+% 107 - 01.04    - OK dla Z3 (b. krotki przedzial), OK dla Z4 (z reident.)
+
+% spadek
+
+% 201 - 02.12    - BAD/srednio dla Z3, BAD dla Z4
+% 202 - 03.16    - OK dla Z3 (niestabilne modele), OK dla Z4
+% 203 - 03.22    - BAD dla Z3, srednio dla Z4
+% 204 - 05.09    - OK dla Z3, OK dla Z4 (duzo niestabilnych)
+% 205 - 06.04    - OK dla Z3 (bez reident.), OK wzorcowy dla Z4 (bez reident.)
+% 206 - 17.09.05 - OK dla Z3 (bez reident.), OK dla Z4 (bez sterowania praktycznie, bez reident.)
+% 207 - 17.10.10 - srednio dla Z3 (z reident.), OK dla Z4 (bez reident)
+% 208 - 17.11.07 - srednio dla Z3 (z reident.), OK dla Z4 (bez reident)
+
+% inne
+
+% 501 - 01.24    - BAD dla Z3, OK dla Z4
+% 502 - 03.26    - srednio dla Z3, OK dla Z4
+% 503 - 05.04    - BAD dla Z3 (zanik gazu), BAD dla Z4
+% 504 - 08.30.17 - OK dla Z3 (niestabilne modele), BAD dla Z4
+% 505 - 17.10.24 - srednio dla Z3 (1 raz blad obs.), BAD dla Z4
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 section_nr=4;           % 3 lub 4
-data_nr=503;
+data_nr=102;
+
+plot_str.font_size_1=25;
+plot_str.font_size_2=20;
+plot_str.lines_nr=2;
+plot_str.offset_1=1;         % zero points
+plot_str.offset_2=45;        % intervals sub.
+plot_str.offset_3=500;       % initial int. sub.
+plot_str.offset_4=5;         % gora
+plot_str.offset_5=5;         % dol
+plot_str.legend_loc=0;
 
 if section_nr==3
     
@@ -73,6 +117,7 @@ if section_nr==3
             filename='plikiCSV_Panevezys\FH11\04_23\Z3.csv';'rt'; % 20000 35000
             t_start=4500;
             t_end=11000;
+            plot_str.offset_3=550;       % initial int. sub.
             
             ident_section=MD_ident_section(3,{'FH11_Z2C_TEMP_PV','FH11_Z3_MIX_PRES_PV','FH11_Z3_CLN_VLV_POS_PV',...
                 'FH11_Z3_TEMP_PV','FH11_Z3_TEMP_SP','FH11_PULL'},[0.0344 1.236],2272,filename,MD_constant_values_Z3);
@@ -80,7 +125,7 @@ if section_nr==3
         case 102
             
             filename='plikiCSV_Panevezys\FH11\05_31\Z3.csv';'rt'; % 20000 35000
-            t_start=27000+250;
+            t_start=27000+250*2;
             t_end=36000-2000;
             
             ident_section=MD_ident_section(3,{'FH11_Z2C_TEMP_PV','FH11_Z3_MIX_PRES_PV','FH11_Z3_CLN_VLV_POS_PV',...
@@ -216,11 +261,22 @@ if section_nr==3
             ident_section=MD_ident_section(3,{'FH11_Z2C_TEMP_PV','FH11_Z3_MIX_PRES_PV','FH11_Z3_CLN_VLV_POS_PV',...
                 'FH11_Z3_TEMP_PV','FH11_Z3_TEMP_SP','FH11_PULL'},[0.0344 1.236],2272,filename,MD_constant_values_Z3);
             
+            plot_str.legend_loc=1;
+            
         case 206
             
             filename='plikiCSV_Panevezys\FH11\17_09_05\Z3.csv';'rt'; % 20000 35000
             t_start=26500;
             t_end=26500+10000;
+            
+            plot_str.font_size_1=25;
+            plot_str.font_size_2=20;
+            plot_str.lines_nr=2;
+            plot_str.offset_1=1;         % zero points
+            plot_str.offset_2=45;        % intervals sub.
+            plot_str.offset_3=500;       % initial int. sub.
+            plot_str.offset_4=5;         % gora
+            plot_str.offset_5=5;         % dol
             
             ident_section=MD_ident_section(3,{'FH11_Z2C_TEMP_PV','FH11_Z3_MIX_PRES_PV','FH11_Z3_CLN_VLV_POS_PV',...
                 'FH11_Z3_TEMP_PV','FH11_Z3_TEMP_SP','FH11_PULL'},[0.0344 1.236],2272,filename,MD_constant_values_Z3);
@@ -303,7 +359,7 @@ if section_nr==3
             ident_section=MD_ident_section(3,{'FH11_Z2C_TEMP_PV','FH11_Z3_MIX_PRES_PV','FH11_Z3_CLN_VLV_POS_PV',...
                 'FH11_Z3_TEMP_PV','FH11_Z3_TEMP_SP','FH11_PULL'},[0.0344 1.236],2272,filename,MD_constant_values_Z3);
             
-        
+            
         case 505
             
             filename='plikiCSV_Panevezys\FH11\17_10_24\Z3.csv';'rt'; % 20000 35000
@@ -313,7 +369,7 @@ if section_nr==3
             ident_section=MD_ident_section(3,{'FH11_Z2C_TEMP_PV','FH11_Z3_MIX_PRES_PV','FH11_Z3_CLN_VLV_POS_PV',...
                 'FH11_Z3_TEMP_PV','FH11_Z3_TEMP_SP','FH11_PULL'},[0.0344 1.236],2272,filename,MD_constant_values_Z3);
             % bylo MD_constant_values_Z3_short
-                   
+            
     end
     
 elseif section_nr==4
@@ -481,6 +537,7 @@ elseif section_nr==4
             filename='plikiCSV_Panevezys\FH11\06_04\Z4.csv';'rt'; % 20000 35000
             t_start=40000;
             t_end=50000;
+            plot_str.legend_loc=1;
             
             ident_section=MD_ident_section(2,{'FH11_Z3_TEMP_PV','FH11_Z4_MIX_PRES_PV',...
                 'FH11_Z4_TEMP_PV','FH11_Z4_TEMP_SP','FH11_PULL'},[0.0344 1.236],1055,filename,MD_constant_values_Z4);
@@ -624,4 +681,5 @@ end
 
 toc
 
-ident_section.plot_signals(cnt,{'Previous section temperature', 'Mixture pressure','Cln. vlv. position'},{'Temp. [$^\circ$C]','Press. [kPa]','Pos. [$\%$]'},1,1,1);
+ident_section.plot_signals(cnt,{'Previous section temperature', 'Mixture pressure','Cln. vlv. position'},{'Temp. [$^\circ$C]','Press. [kPa]','Pos. [$\%$]'},1,1,1,plot_str);
+ident_section.plot_eigenvalues(plot_str);
