@@ -131,6 +131,9 @@ FH4_data.temp_measured_file=strcat(FH4_data.file_path,'\',FH4_data.sim_date,'\',
 
 FH4_data.sim_mode=MD_constant_values.sim_mode_Z4;
 FH4_data.pull_uncertain=MD_constant_values.pull_uncertain_Z4;
+FH4_data.add_noise=MD_constant_values.add_noise;
+FH4_data.snr=MD_constant_values.snr;
+FH4_data.seed=5;
 
 %forehearth_name={'FH11'};
 file_path=FH4_data.file_path;

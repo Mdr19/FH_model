@@ -307,7 +307,8 @@ classdef MD_ident_section < handle
                                 case 0
                                     [obj.current_model, obj.current_model_params]=MD_model_ident_LSM_GS4(input_signals_ident,output_signal_ident',obj.ident_method_params,obj.current_model_nr*100);
                                 case 1
-                                    [obj.current_model, obj.current_model_params]=MD_model_ident_LSM_GS5(input_signals_ident,output_signal_ident',obj.ident_method_params,obj.current_model_nr*100);
+                                    [obj.current_model, obj.current_model_params]=MD_model_ident_LSM_GS5(input_signals_ident,output_signal_ident',...
+                                        obj.ident_models(obj.current_model_nr).inputs_to_ident,obj.ident_method_params,obj.current_model_nr*100);
                                 otherwise
                                     [obj.current_model, obj.current_model_params]=MD_model_ident_LSM_GS4(input_signals_ident,output_signal_ident',obj.ident_method_params,obj.current_model_nr*100);
                             end
@@ -442,7 +443,7 @@ classdef MD_ident_section < handle
                         end
                         
                         if interval_type~='N' && ~MD_check_model_prop_new(reident_model,obj.ident_models(obj.current_model_nr).inputs_to_ident,obj.current_model_params.n,[1 1 -1])
-                           disp('Inaproppriate reident model');
+                           disp('Inappropriate reident model');
                            interval_type='N'; 
                         end
                         
@@ -714,7 +715,8 @@ classdef MD_ident_section < handle
                                 case 0
                                     [obj.alternative_model.model, obj.alternative_model.model_params]=MD_model_ident_LSM_GS4(input_signals_ident,output_signal_ident',obj.ident_method_params,plot_cnt);
                                 case 1
-                                    [obj.alternative_model.model, obj.alternative_model.model_params]=MD_model_ident_LSM_GS5(input_signals_ident,output_signal_ident',obj.ident_method_params,plot_cnt);
+                                    [obj.alternative_model.model, obj.alternative_model.model_params]=MD_model_ident_LSM_GS5(input_signals_ident,output_signal_ident',...
+                                        obj.ident_models(obj.current_model_nr).inputs_to_ident,obj.ident_method_params,plot_cnt);
                                 otherwise
                                     obj.alternative_model.model=MD_MISO_model_ident(input_signals_ident,output_signal_ident,MISO_eta,plot_cnt);
                             end
@@ -976,7 +978,7 @@ classdef MD_ident_section < handle
                     
                 end
                 
-                if size(obj.current_model)==1
+                if length(obj.current_model)==1
                     Ac=obj.current_model.A;
                     Bc=obj.current_model.B(:,start_model_nr:end);
                     Cc=zeros(1,size(Ac,1));
@@ -1517,9 +1519,11 @@ classdef MD_ident_section < handle
                                 case 1
                                     %[obj.current_model, obj.current_model_params]=MD_model_ident_LSM_GS4(input_signals_ident,output_signal_ident,obj.current_model_nr*100);
                                     %ident_offset_intervals
-                                    [obj.current_model, obj.current_model_params]=MD_model_ident_LSM_GS5(input_signals_ident,output_signal_ident,obj.ident_method_params,obj.current_model_nr*100);
+                                    [obj.current_model, obj.current_model_params]=MD_model_ident_LSM_GS5(input_signals_ident,output_signal_ident,...
+                                        obj.ident_models(obj.current_model_nr).inputs_to_ident,obj.ident_method_params,obj.current_model_nr*100);
                                 otherwise
-                                    [obj.current_model, obj.current_model_params]=MD_model_ident_LSM_GS5(input_signals_ident,output_signal_ident,obj.ident_method_params,obj.current_model_nr*100);
+                                    [obj.current_model, obj.current_model_params]=MD_model_ident_LSM_GS5(input_signals_ident,output_signal_ident,...
+                                        obj.ident_models(obj.current_model_nr).inputs_to_ident,obj.ident_method_params,obj.current_model_nr*100);
                             end
                             
                             
@@ -1875,10 +1879,12 @@ classdef MD_ident_section < handle
                                     [obj.alternative_model.model, obj.alternative_model.model_params]=MD_model_ident_LSM_GS4(input_signals_ident,output_signal_ident,obj.ident_method_params,plot_cnt);
                                 case 1
                                     %[obj.alternative_model.model, obj.alternative_model.model_params]=MD_model_ident_LSM_GS4(input_signals_ident,output_signal_ident,plot_cnt);
-                                    [obj.alternative_model.model, obj.alternative_model.model_params]=MD_model_ident_LSM_GS5(input_signals_ident,output_signal_ident,obj.ident_method_params,plot_cnt);
+                                    [obj.alternative_model.model, obj.alternative_model.model_params]=MD_model_ident_LSM_GS5(input_signals_ident,output_signal_ident,...
+                                        obj.ident_models(obj.current_model_nr).inputs_to_ident,obj.ident_method_params,plot_cnt);
                                     
                                 otherwise
-                                    [obj.alternative_model.model, obj.alternative_model.model_params]=MD_model_ident_LSM_GS5(input_signals_ident,output_signal_ident,obj.ident_method_params,plot_cnt);
+                                    [obj.alternative_model.model, obj.alternative_model.model_params]=MD_model_ident_LSM_GS5(input_signals_ident,output_signal_ident,...
+                                        obj.ident_models(obj.current_model_nr).inputs_to_ident,obj.ident_method_params,plot_cnt);
                             end
                             
                             obj.alternative_model.intervals(1).initial_state=[];

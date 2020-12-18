@@ -84,7 +84,7 @@ switch data_set
         FH4_data.sim_date='05_09';
         FH4_data.start_index=61000;
         
-        intervals_nr=30+15-16; %+15; %50;%+25; %45
+        intervals_nr=30-3; %+15; %50;%+25; %45
         signals_len=10000;
         plot_str.legend_loc=1;
         
@@ -154,6 +154,9 @@ FH3_data.temp_measured_file=strcat(FH3_data.file_path,'\',FH3_data.sim_date,'\',
 
 FH3_data.sim_mode=MD_constant_values.sim_mode_Z3;
 FH3_data.pull_uncertain=MD_constant_values.pull_uncertain_Z3;
+FH3_data.add_noise=MD_constant_values.add_noise;
+FH3_data.snr=MD_constant_values.snr;
+FH3_data.seed=5;
 
 %forehearth_name={'FH11'};
 file_path=FH3_data.file_path;

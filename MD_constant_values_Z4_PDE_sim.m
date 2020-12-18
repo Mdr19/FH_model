@@ -12,7 +12,7 @@ classdef MD_constant_values_Z4_PDE_sim
         plot_new_model=1;
 
         %% linearization
-        threshold_lin=1e-1*0.2;          %1e-1*0.2 bylo dobrze   zwiekszone 5 razy 1e-1*0.3*10       11.05 bylo 1e-1*0.4*100
+        threshold_lin=1e-1*0.2*3;          %1e-1*0.2 bylo dobrze   zwiekszone 5 razy 1e-1*0.3*10       11.05 bylo 1e-1*0.4*100
         mean_interval_lin=100;
         h_lin=50;
         MFM_step=1;
@@ -52,7 +52,7 @@ classdef MD_constant_values_Z4_PDE_sim
         %% opcje
         ident_method=2;             % dotyczy MFM - 1 eigenvector, others - ograniczenie liniowe
         initial_model_method=2;     % 1 - oryginalne, 2-LSM, 3 LSM out
-        initial_state_method=0;     % 0 - symulacja , 1- obserwator
+        initial_state_method=1;     % 0 - symulacja , 1- obserwator
         ident_mode=1;               % 0 - separate models, 1 - single model for controled inputs
         
         %% uncertain pull

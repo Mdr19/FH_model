@@ -25,7 +25,7 @@ zero_initial_state=sum(initial_state(1,:));
 if model_len>1 %&& method_params.model_reident
     disp('Set of SISO models');
     state=1;
-elseif ((model_len==1) && (zero_initial_state==0)) && method_params.model_reident
+elseif ((model_len==1) && (zero_initial_state==0)) && method_params.model_reident && inputs_to_ident(1)~=0
     disp('Model single. Zero initial state');
     state=2;
 else

@@ -78,7 +78,7 @@ T=MD_constant_values.T_sim; %1000
 % inne
 
 % 501 - 01.24    - BAD dla Z3, OK dla Z4
-% 502 - 03.26    - srednio dla Z3, OK dla Z4
+% 502 - 03.26    - srednio dla Z3, OK wzorcowy dla Z4 (bez reident)
 % 503 - 05.04    - BAD dla Z3 (zanik gazu), BAD dla Z4
 % 504 - 08.30.17 - OK dla Z3 (niestabilne modele), BAD dla Z4
 % 505 - 17.10.24 - srednio dla Z3 (1 raz blad obs.), BAD dla Z4
@@ -86,7 +86,7 @@ T=MD_constant_values.T_sim; %1000
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 section_nr=4;           % 3 lub 4
-data_nr=102;
+data_nr=204;
 
 plot_str.font_size_1=25;
 plot_str.font_size_2=20;

@@ -59,7 +59,9 @@ FH3_data.k_4=0.002548259469871;
 
 % 7 - spadek
 
-data_set=80;
+% multizone - 70 i 80
+
+data_set=70;
 
 switch data_set
     case 1
@@ -135,6 +137,17 @@ switch data_set
         intervals_nr=10*3-10; %7; %28;
         signals_len=8000;
         
+    case 70
+        
+        FH3_data.sim_date='05_09';
+        FH3_data.start_index=61000;
+        
+        FH4_data.sim_date='05_09';
+        FH4_data.start_index=61000;
+        
+        intervals_nr=10*3; %-17; %7; %28;
+        signals_len=10000;  
+        
     case 80
         %FH_data.sim_date='05_31';
         %FH_data.start_index=27000+400;
@@ -149,6 +162,16 @@ switch data_set
         intervals_nr=30; %50;%+25; %45
         signals_len=7600;
         
+    case 90
+        
+        FH3_data.sim_date='17_10_10';
+        FH3_data.start_index=27000;
+        
+        FH4_data.sim_date='17_10_10';
+        FH4_data.start_index=27000;
+        
+        intervals_nr=30; %50;%+25; %45
+        signals_len=7600;
         
     case 9
         FH_data.sim_date='01_23';
@@ -201,6 +224,9 @@ FH3_data.temp_measured_file=strcat(FH3_data.file_path,'\',FH3_data.sim_date,'\',
 
 FH3_data.sim_mode=MD_constant_values.sim_mode_Z3;
 FH3_data.pull_uncertain=MD_constant_values.pull_uncertain_Z3;
+FH3_data.add_noise=MD_constant_values.add_noise;
+FH3_data.snr=MD_constant_values.snr;
+FH3_data.seed=5;
 
 % FH 4
 
@@ -236,7 +262,9 @@ FH4_data.temp_measured_file=strcat(FH4_data.file_path,'\',FH4_data.sim_date,'\',
 
 FH4_data.sim_mode=MD_constant_values.sim_mode_Z4;
 FH4_data.pull_uncertain=MD_constant_values.pull_uncertain_Z4;
-
+FH4_data.add_noise=MD_constant_values.add_noise;
+FH4_data.snr=MD_constant_values.snr;
+FH4_data.seed=5;
 
 
 %forehearth_name={'FH11'};
@@ -323,6 +351,8 @@ for i=1:intervals_nr
         ident_section_Z3.obtain_MPC_model(5,0.6,150/2,MD_constant_values.h_Z3);
         FH_set_MPC_model(ident_section_Z3,'Z3',0);
         
+    elseif ~isempty(ident_section_Z3.MPC_model)
+        %FH_update_state_MPC_model(ident_section_Z3,'Z3');
     end
     
     
@@ -351,7 +381,8 @@ for i=1:intervals_nr
         
         ident_section_Z4.obtain_MPC_model(5,0.6,150/2,MD_constant_values.h_Z4);
         FH_set_MPC_model(ident_section_Z4,'Z4',0);
-        
+    elseif ~isempty(ident_section_Z4.MPC_model)
+        %FH_update_state_MPC_model(ident_section_Z4,'Z4');
     end
     
 end

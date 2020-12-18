@@ -1,4 +1,4 @@
-function [ best_model, model_params ] = MD_model_ident_LSM_GS5(sys_input,real_sys_output,method_params,plot_nr)
+function [ best_model, model_params ] = MD_model_ident_LSM_GS5(sys_input,real_sys_output,inputs_to_ident,method_params,plot_nr)
 
 disp('---------------------------------');
 disp('MODEL IDENTIFICATION PROCEDURE');
@@ -109,6 +109,12 @@ if ident_inputs_nr>=3
 else
     number_of_separate_models=ident_inputs_nr;
 end
+
+% without prev zone
+if inputs_to_ident(1)==0
+    number_of_separate_models=number_of_separate_models-1;
+end
+
 
 current_sys_signals=[];
 

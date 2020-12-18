@@ -9,6 +9,9 @@ classdef MD_constant_values
         sim_mode_Z3=2;                   % 0 - , 1- PID, 2 - MPC
         sim_mode_Z4=2;
         
+        add_noise=true;
+        snr=20;
+        
         pull_uncertain_Z3=1;
         pull_uncertain_Z4=1;
         

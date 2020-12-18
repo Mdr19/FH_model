@@ -53,6 +53,11 @@ classdef FH_section_sim < handle
         % uncertain pull
         pull_uncertain;
         
+        %noises
+        add_noise;
+        snr;
+        seed;
+        
     end
     
     methods
@@ -105,6 +110,9 @@ classdef FH_section_sim < handle
                 obj.sim_mode=FH_section_data.sim_mode;
                 obj.pull_uncertain=FH_section_data.pull_uncertain;
                 
+                obj.add_noise=FH_section_data.add_noise;
+                obj.snr=FH_section_data.snr;
+                obj.seed=FH_section_data.seed;
             end
         end
         
@@ -586,7 +594,13 @@ classdef FH_section_sim < handle
             end
             
             obj.intervals(obj.current_interval).simulated_temp.time=tlist+obj.current_index-obj.start_index;
-            obj.intervals(obj.current_interval).simulated_temp.values=obj.fea.sol.u(end,:);
+            %obj.intervals(obj.current_interval).simulated_temp.values=obj.fea.sol.u(end,:);
+            %obj.intervals(obj.current_interval).simulated_temp.values=awgn(obj.fea.sol.u(end,:),100,'measured',1);
+            if obj.add_noise
+                obj.intervals(obj.current_interval).simulated_temp.values=awgn(obj.fea.sol.u(end,:),obj.snr,0,obj.seed);
+            else
+                obj.intervals(obj.current_interval).simulated_temp.values=obj.fea.sol.u(end,:);
+            end
             
             obj.intervals(obj.current_interval).simulated_temp_resampled=...
                 interp1(obj.intervals(obj.current_interval).simulated_temp.time,obj.intervals(obj.current_interval).simulated_temp.values,obj.intervals(obj.current_interval).time);
@@ -1005,7 +1019,13 @@ classdef FH_section_sim < handle
             end
             
             obj.intervals(obj.current_interval).simulated_temp.time=tlist+obj.current_index-obj.start_index;
-            obj.intervals(obj.current_interval).simulated_temp.values=obj.fea.sol.u(end,:);
+            %obj.intervals(obj.current_interval).simulated_temp.values=obj.fea.sol.u(end,:);
+            
+             if obj.add_noise
+                obj.intervals(obj.current_interval).simulated_temp.values=awgn(obj.fea.sol.u(end,:),obj.snr,0,obj.seed);
+            else
+                obj.intervals(obj.current_interval).simulated_temp.values=obj.fea.sol.u(end,:);
+            end
             
             obj.intervals(obj.current_interval).simulated_temp_resampled=...
                 interp1(obj.intervals(obj.current_interval).simulated_temp.time,...

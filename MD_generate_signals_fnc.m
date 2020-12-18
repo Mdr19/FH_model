@@ -28,22 +28,26 @@ switch(data_set)
             % ex 1 
             %[temp_SP_steps,temp_SP_values]=MD_generate_SP_evenly(1000,7000,6,1184,1160);
             
-            % ex 2
+            % ex 2 wzorcowy !!!!!!!!!! NEW
             [temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(1600,7000,5,1184,1160);
 
-            % ex 3 prob numeryczne
+            % ex 3 OK
             %temp_SP_steps=[1 1600 2680 3760 4840 5920];
-            %temp_SP_values=[1184 1176 1172 1168 1164 1160];
+            %temp_SP_values=[1184 1176 1174 1168 1164 1160];
+            
+            % ex 4 OK WZORCOWY !
+            %[temp_SP_steps,temp_SP_values]=MD_generate_SP_evenly(1600,6200,4,1184,1160);
+
             
         elseif zone_nr==4
             %temp_SP_steps=[1 820 2000-400 2500+100 3500-100 4300 5400];
             %temp_SP_values=[1181 1178 1175 1170 1165 1160 1155];
             
             %exp 1
-            %[temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(1000,6200,5,1181,1155);
+            [temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(1000,6200,5,1181,1155);
             
             % exp 2
-            [temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(1600,6200,5,1181,1155);
+            %[temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(1600,6200,5,1181,1155);
             
         end
         
@@ -68,7 +72,7 @@ switch(data_set)
             %[temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(500,5000,4,1158+3,1183+3);
 
             % 1 exmp
-            [temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(1000,6000,5,1158,1183);
+            %[temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(1000,6000,5,1158,1183);
             
             %temp_SP_steps=[1 1020 2400 3200+500 4000+500 5000+500 5400+500];
             
@@ -76,21 +80,22 @@ switch(data_set)
             %temp_SP_steps=[1 1020 2400 3200 4000 5000 5400+500];
             %temp_SP_values=[1158 1168 1173 1178 1183 1180 1178];
 
-            % 3 exmp
-            %temp_SP_steps=[1 1000 2000 3000 4000 5000];
-            %temp_SP_values=[1158 1165 1170 1175 1180 1183];
-            %%temp_SP_steps(2:end)=temp_SP_steps(2:end)+200;
+            % 3 exmp wzorcowy
+            temp_SP_steps=[1 1000 2000 3000 4000 5000];
+            temp_SP_values=[1158 1165 1170 1175 1180 1183];
             
+           
+                        
         elseif zone_nr==4
             %temp_SP_steps=[1 1020 2000-100 2500+100 3500-100 4300 5400];
             %temp_SP_values=[1150 1160 1165 1170 1175 1179 1177];
             
-            % 2 exmp
-            %[temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(1000+200,6000+200,5,1150,1177);
+            % 2 exmp wzorcowy !!
+            [temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(1000+200,5000+200,5,1150,1177);
             
-            % 3 exmp
-            temp_SP_steps=[1 1200 2200 3200 4200 5200];
-            temp_SP_values=[1150 1160 1165 1170 1174 1177];
+            % 3 exmp wzorcowy
+            %temp_SP_steps=[1 1200 2200 3200 4200 5200];
+            %temp_SP_values=[1150 1160 1165 1170 1174 1177];
         end
         
         
@@ -176,16 +181,133 @@ switch(data_set)
         %pull_values_saved=[74 55 67];
         
         if zone_nr==3
+            
+            % bez zaklocen wzorcowy
             [temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(1000,5000,4,1158,1183);
             temp_SP_steps(end+1)=6000;
             temp_SP_values(end+1)=1180;
 
+            % tak sobie
+            %[temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(1000,5000,5,1158,1183);
+            %temp_SP_steps(end+1)=6000;
+            %temp_SP_values(end+1)=1180;
+
+            % ex 2
+            %temp_SP_steps=[1 1000 2000 3000 4000 6000];
+            %temp_SP_values=[1158 1168 1175 1180 1183 1180];
+
+            % ex 3 moze byc
+            %[temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(1000,5000,6,1158,1183);
+            %temp_SP_steps(end+1)=6000;
+            %temp_SP_values(end+1)=1180;
+
+            % ex 4
+            %[temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(1000,6000,5,1158,1183);
+            %%temp_SP_steps=[1 1000 2334 3668 6000];
+            %%temp_SP_values=[1158 1166 1174 1182 1180];
+                        
+            
+            
         elseif zone_nr==4
 
+            % bez zakl
             temp_SP_steps=[1 1000 2000 3000 4000 6000];
             temp_SP_values=[1150 1160 1165 1170 1177 1175];
             
+            %temp_SP_steps=[1 1000 2500 3500 4000 6000];
+            %temp_SP_values=[1150 1162 1167 1172 1177 1175];
+            
+            % zakl tak sobie
+            %[temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(1100,6100,4,1150,1175);
+
+            
         end
+        
+        case 70
+        
+        pull_var_name='FH11_PULL';
+        
+        pull_steps_original=[1 2400 2800 2900 4800];
+        pull_values_original=[114 95 100 105 112];
+        
+        %pull_steps_saved=pull_steps_original;
+        %pull_values_saved=pull_values_original;
+        
+        pull_steps_saved=[1 2400+50 2800+50 2900+100 4800+150];
+        pull_values_saved=[114 95 100 105 112];
+        
+        if zone_nr==3
+          
+            
+            
+            % ex1
+            [temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(1600,7000,4,1184,1160);
+            
+        elseif zone_nr==4
+            %temp_SP_steps=[1 820 2000-400 2500+100 3500-100 4300 5400];
+            %temp_SP_values=[1181 1178 1175 1170 1165 1160 1155];
+            
+            %exp 1
+            %[temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(1000,6200,5,1181,1155);
+            
+            % exp 2
+            %[temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(1300,7000,6,1181,1155);
+            
+            % exp 3 OK
+            temp_SP_steps=[1 1500 3200 4150 5100 6050];
+            temp_SP_values=[1181 1177 1172 1165 1160 1155];
+            
+            % ex 4 OK
+            temp_SP_steps=[1 1500 2850 4200 5550];
+            temp_SP_values=[1181 1177 1167 1160 1155];
+
+            % ex 5 OK wzorcowy
+            temp_SP_steps=[1 1500 2850 4200 5550];
+            temp_SP_values=[1181 1177 1168 1162 1155];
+
+            
+
+            
+        end
+        
+        
+        case 90
+        
+        pull_var_name='FH11_PULL';
+        
+        pull_steps_original=[1 2400 2800 2900 4800];
+        pull_values_original=[114 95 100 105 112];
+        
+        pull_steps_saved=[1 2900  5000];
+        pull_values_saved=[114 100 112];
+        
+        if zone_nr==3
+            %temp_SP_steps=[1 400+500 820+500 2000-400+500 2500+100+500 3500-100+500 4300+500 5400+500];
+            %temp_SP_values=[1184 1181 1178 1175 1170 1163 1162 1160];
+            
+            % ex 1 
+            %[temp_SP_steps,temp_SP_values]=MD_generate_SP_evenly(1000,7000,6,1184,1160);
+            
+            % ex 2
+            %[temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(1600,7000,5,1184,1160);
+
+            % ex 3 prob numeryczne
+            temp_SP_steps=[1 1000 1600 2680 3760 4840 5920];
+            temp_SP_values=[1184 1180 1175 1172 1169 1166 1163];
+            
+        elseif zone_nr==4
+            %temp_SP_steps=[1 820 2000-400 2500+100 3500-100 4300 5400];
+            %temp_SP_values=[1181 1178 1175 1170 1165 1160 1155];
+            
+            %exp 1
+            %[temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(1000,6200,5,1181,1155);
+            
+            % exp 2
+            [temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(1600,6200,5,1181,1155);
+            
+        end
+        
+        
         
 end
 
