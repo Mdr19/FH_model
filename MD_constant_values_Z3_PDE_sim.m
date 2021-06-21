@@ -35,7 +35,7 @@ classdef MD_constant_values_Z3_PDE_sim
         min_inputs_ident=2;              % minimalna liczba wejsæ dla modelu
         T_ob=MD_constant_values_Z3_PDE_sim.T_sim*2; % szerokœæ interwa³u obserwacji  %%!!!!!!!!!!!!!!!!!! 500 dla rzeczywistych (2*250)
         T_sim=250;                                               % szerokoœæ interwa³u syulacji
-        model_change_threshold=MD_constant_values_Z3.T_sim;     % próg od którego re-identyfikacja - bylo MD_constant_values.T_sim*0.2
+        model_change_threshold=MD_constant_values_Z3_PDE_sim.T_sim;     % próg od którego re-identyfikacja - bylo MD_constant_values.T_sim*0.2
         var_threshold=0.01;              % minimalna wariancja dla wejœcia    % bylo 0.01
         corr_threshold=0.5;
         change_model=1;                  % update modelu podczas symulacji

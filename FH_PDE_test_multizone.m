@@ -5,6 +5,10 @@ warning('off')
 
 global MPC_model
 
+global output_signal
+global input_signal_applied
+global temp_SP
+
 MPC_model.Z3=[];
 MPC_model.Z3_new=[];
 
@@ -61,7 +65,7 @@ FH3_data.k_4=0.002548259469871;
 
 % multizone - 70 i 80
 
-data_set=70;
+data_set=80;
 
 switch data_set
     case 1
@@ -331,7 +335,12 @@ for i=1:intervals_nr
     
     FH_sections(1).perform_simulation(cnt_start+i*interval);
     %FH_sections(2).perform_simulation(cnt_start+i*interval);
-    
+    size(input_signal_applied.Z3_input_1)
+    size(input_signal_applied.Z3_input_2)
+    size(output_signal.Z3)
+    size(temp_SP)
+    size(FH_sections(1).intervals(FH_sections(1).current_interval).time)
+
     ident_section_Z3.define_interval_plant(FH_sections(1),i);
     ident_section_Z3.simulate_model_output_plant(FH_sections(1),(i-1)*interval,i*interval-1);
     ident_section_Z3.ident_model_plant(FH_sections(1));
@@ -362,7 +371,11 @@ for i=1:intervals_nr
     %disp('-------------------------------------------------------------------------------------------------------');
     
     FH_sections(2).perform_simulation_multizone(cnt_start+i*interval,FH_sections(1));
-    
+    size(input_signal_applied.Z4_input_1)
+    size(output_signal.Z4)
+    size(temp_SP)
+
+
     ident_section_Z4.define_interval_plant(FH_sections(2),i);
     ident_section_Z4.simulate_model_output_plant(FH_sections(2),(i-1)*interval,i*interval-1);
     ident_section_Z4.ident_model_plant(FH_sections(2));

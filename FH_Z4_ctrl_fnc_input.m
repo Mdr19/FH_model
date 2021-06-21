@@ -37,6 +37,7 @@ global u_mpc;
 global u_FF;
 
 global MPC_model
+global DMC_model
 global PZ_model
 
 max_press=MD_constant_values.mix_press_max;
@@ -79,7 +80,7 @@ if (MD_constant_values.sim_mode_Z4==0) %|| ((MD_constant_values.sim_mode==2) && 
     
     result=input_signals.Z4_input(ceil(t(1)))*ones(size(u));
     
-elseif (MD_constant_values.sim_mode_Z4==1) || isempty(MPC_model.Z4)  %MPC_model.Z4_new_model_set % || isempty(MPC_model.Z4) % PID
+elseif (MD_constant_values.sim_mode_Z4==1) || (MD_constant_values.sim_mode_Z4==2 && isempty(MPC_model.Z4)) || (MD_constant_values.sim_mode_Z4==3 && isempty(DMC_model.Z4)) %MPC_model.Z4_new_model_set % || isempty(MPC_model.Z4) % PID
     
     if t==0
         t=1;

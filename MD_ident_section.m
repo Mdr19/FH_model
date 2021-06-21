@@ -1081,6 +1081,50 @@ classdef MD_ident_section < handle
             end
         end
         
+        %% DMC MODEL IDENTIFICATION
+        function obtain_DMC_model(obj,N_,p_,Tp,h)
+
+            disp('Obtaining DMC model');
+            tic
+            
+            if obj.ident_models(obj.current_model_nr).inputs_to_ident(1)==0
+                    start_model_nr=1;
+                else
+                    start_model_nr=2;
+                end
+                
+                
+                if start_model_nr>1
+                    
+                    if size(obj.current_model)==1
+                        obj.PZ_model.A=obj.current_model.A;
+                        obj.PZ_model.B=obj.current_model.B(:,1);
+                        obj.PZ_model.C=zeros(1,size(obj.PZ_model.A,1));
+                        obj.PZ_model.C(end)=1;
+                        obj.PZ_model.D=0;
+                        obj.PZ_model.X0=obj.current_initial_state';
+                    else
+                        obj.PZ_model.A=obj.current_model(1).A;
+                        obj.PZ_model.B=obj.current_model(1).B;
+                        obj.PZ_model.C=zeros(1,size(obj.PZ_model.A,1));
+                        obj.PZ_model.C(end)=1;
+                        obj.PZ_model.D=0;
+                        obj.PZ_model.X0=obj.current_initial_state(:,1);
+                    end
+                    
+                end
+                
+                if length(obj.current_model)==1
+                    
+                else
+                    
+                end
+            
+            
+            toc
+            
+        end
+        
         %%
         function delete_first_intervals(obj,number_of_intervals_to_delete)
             if length(obj.signals_intervals)>number_of_intervals_to_delete
@@ -2591,7 +2635,7 @@ classdef MD_ident_section < handle
                             plot([obj.signals_intervals(k).op_time obj.signals_intervals(k).op_time],...
                                 [min_output_plot,max_output_plot],'k--');
                             text(obj.signals_intervals(k).op_time,min_output_plot-plot_str.offset_1,...
-                                ['$t_{' num2str(op_number) '}$'],'FontSize',plot_str.font_size_1,'Interpreter', 'latex');
+                                ['$t_{0' num2str(op_number) '}$'],'FontSize',plot_str.font_size_1,'Interpreter', 'latex');
                             %['t_{' num2str(op_number) '}'],'FontSize',obj.ident_method_params.font_size);
                             
                             op_number=op_number+1;

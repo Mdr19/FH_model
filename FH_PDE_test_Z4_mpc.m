@@ -4,6 +4,7 @@ clear all
 warning('off')
 
 global MPC_model
+global DMC_model
 
 sample_time=10;
 elements_nr=5;
@@ -159,6 +160,8 @@ sections_len_=[0 1];
 MPC_model.Z4=[];
 MPC_model.Z4_new=[];
 
+DMC_model.Z4=[];
+DMC_model.Z4_new=[];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -212,6 +215,8 @@ for i=1:intervals_nr
                 ident_section_Z4.obtain_MPC_model(5,0.6,150/2,MD_constant_values.h_Z4);        %0.03 bylo N=3
                 %FH_get_MPC_model(ident_section_Z4,'Z4');
                 FH_set_MPC_model(ident_section_Z4,'Z4',prev_section_ctrl);
+            elseif FH4_data.sim_mode==3
+                ident_section_Z4.obtain_DMC_model(150/2,1);        %0.03 bylo N=3
             end
             
         elseif ~isempty(ident_section_Z4.MPC_model)

@@ -6,8 +6,8 @@ classdef MD_constant_values
         
         %% Parametry symulacji dla PDE
         sim_mode=0;                      % 0 - czytanie danych historycznych, 1 - symulacja z dzialaniem regulatora, 2 - tryb mieszany
-        sim_mode_Z3=2;                   % 0 - , 1- PID, 2 - MPC
-        sim_mode_Z4=2;
+        sim_mode_Z3=2;                   % 0 - , 1- PID, 2 - MPC, 3 - DMC
+        sim_mode_Z4=3;
         
         add_noise=true;
         snr=20;

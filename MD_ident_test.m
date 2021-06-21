@@ -86,7 +86,7 @@ T=MD_constant_values.T_sim; %1000
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 section_nr=4;           % 3 lub 4
-data_nr=204;
+data_nr=502;
 
 plot_str.font_size_1=25;
 plot_str.font_size_2=20;
