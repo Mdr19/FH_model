@@ -21,19 +21,20 @@ classdef MD_ident_section < handle
         current_model_params;
         
         current_initial_state;
-        %initial_states;
-        
         current_zero_point_interval;
         
         alternative_model;
-        %alternative_model_params;
         alternative_model_zero_interval;
         
         MPC_model;
-        PZ_model;
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         ident_method_params;
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %last_ident_signals_inp;
+        %last_ident_signals_out;
+        
         
     end
     
@@ -302,6 +303,9 @@ classdef MD_ident_section < handle
                                 output_signal_ident=[output_signal_ident obj.ident_models(1).intervals(i).output_signal];
                             end
                             
+                            %obj.last_ident_signals_inp=input_signals_ident;
+                            %obj.last_ident_signals_out=output_signal_ident;
+                            
                             switch obj.ident_method_params.ident_mode
                                 
                                 case 0
@@ -352,8 +356,8 @@ classdef MD_ident_section < handle
                                 
                             else
                                 
-                               disp('Inappropriate initial model'); 
-                               obj.current_model=[];
+                                disp('Inappropriate initial model');
+                                obj.current_model=[];
                                 
                             end
                             
@@ -443,8 +447,8 @@ classdef MD_ident_section < handle
                         end
                         
                         if interval_type~='N' && ~MD_check_model_prop_new(reident_model,obj.ident_models(obj.current_model_nr).inputs_to_ident,obj.current_model_params.n,[1 1 -1])
-                           disp('Inappropriate reident model');
-                           interval_type='N'; 
+                            disp('Inappropriate reident model');
+                            interval_type='N';
                         end
                         
                         
@@ -957,7 +961,7 @@ classdef MD_ident_section < handle
                     start_model_nr=2;
                 end
                 
-                
+                %{
                 if start_model_nr>1
                     
                     if size(obj.current_model)==1
@@ -977,6 +981,7 @@ classdef MD_ident_section < handle
                     end
                     
                 end
+                %}
                 
                 if length(obj.current_model)==1
                     Ac=obj.current_model.A;
@@ -984,12 +989,13 @@ classdef MD_ident_section < handle
                     Cc=zeros(1,size(Ac,1));
                     Cc(1,size(Ac,1))=1;
                     
+                    %{
                     X0=obj.current_model.A*obj.current_initial_state'+...
                         obj.current_model.B(:,start_model_nr:end)*(obj.signals_intervals(end).original_signals(start_model_nr:start_model_nr+size(obj.current_model.B,2)-start_model_nr,end)-...
                         obj.ident_models(obj.current_model_nr).offset_value(start_model_nr:start_model_nr+size(obj.current_model.B,2)-start_model_nr)');
                     X0=[X0; obj.signals_intervals(end).original_signals(3,end)-...
                         obj.ident_models(obj.current_model_nr).offset_value(end)];
-                    
+                    %}
                     
                     n=rank(obj.current_model.A);
                     X0=[zeros(n,1); obj.signals_intervals(end).original_signals(3,end)-...
@@ -1001,12 +1007,13 @@ classdef MD_ident_section < handle
                     Cc=zeros(1,size(Ac,1));
                     Cc(1,size(Ac,1))=1;
                     
+                    %{
                     X0=obj.current_model(start_model_nr).A*obj.current_initial_state(start_model_nr,:)'+...
                         obj.current_model(start_model_nr).B*(obj.signals_intervals(end).original_signals(start_model_nr:start_model_nr+size(obj.current_model(start_model_nr).B,2)-1,end)-...
                         obj.ident_models(obj.current_model_nr).offset_value(start_model_nr:start_model_nr+size(obj.current_model(start_model_nr).B,2)-1)');
                     X0=[X0; obj.signals_intervals(end).original_signals(3,end)-...
                         obj.ident_models(obj.current_model_nr).offset_value(end)];
-                    
+                    %}
                     
                     n=rank(obj.current_model(2).A);
                     X0=[zeros(n,1); obj.signals_intervals(end).original_signals(3,end)-...
@@ -1080,6 +1087,340 @@ classdef MD_ident_section < handle
                 
             end
         end
+        
+        %%
+        function obtain_MPC_model_FF(obj,N_,p_,Tp,h)
+            if ~isempty(obj.current_model)
+                
+                disp('Obtaining MPC model FF');
+                
+                tic
+                if obj.ident_models(obj.current_model_nr).inputs_to_ident(1)==0
+                    start_model_nr=1;
+                else
+                    start_model_nr=2;
+                end
+                
+                Ac=obj.current_model.A;
+                Bc=obj.current_model.B(:,start_model_nr:end);
+                Cc=zeros(1,size(Ac,1));
+                Cc(1,size(Ac,1))=1;
+                
+                
+                n=rank(obj.current_model.A);
+                X0=[zeros(n,1); obj.signals_intervals(end).original_signals(3,end)-...
+                    obj.ident_models(obj.current_model_nr).offset_value(end)];
+                
+                
+                
+                obj.MPC_model.X0=X0;
+                
+                [m1,n1]=size(Cc);
+                [n1,n_in]=size(Bc);
+                
+                %m1=1;
+                if start_model_nr>1
+                    Bd=zeros(n1+m1,1);
+                    Bd(1:n1,:)=obj.current_model.B(:,1);
+                else
+                    Bd=[];
+                end
+                
+                A=zeros(n1+m1,n1+m1);
+                A(1:n1,1:n1)=Ac;
+                A(n1+1:n1+m1,1:n1)=Cc;
+                
+                B=zeros(n1+m1,n_in);
+                B(1:n1,:)=Bc;
+                
+                C=zeros(m1,n1+m1);
+                C(:,n1+1:n1+m1)=eye(m1,m1);
+                
+                Q=C'*C;
+                R=1*eye(1,1);
+                K_ob=lqr(A',C',Q,R);
+                
+                R=R*eye(size(B,2),size(B,2));
+                p=p_*ones(1,size(B,2));    % 0.6
+                N=N_*ones(1,size(B,2));      %bylo 3
+                %Tp=150;     %100  250  150
+                
+                obj.MPC_model.A=A;
+                obj.MPC_model.B=B;
+                obj.MPC_model.Bd=Bd;
+                obj.MPC_model.C=C;
+                obj.MPC_model.K_ob=K_ob';
+                obj.MPC_model.Q=Q;
+                obj.MPC_model.R=R;
+                
+                [obj.MPC_model.Omega,obj.MPC_model.Psi,obj.MPC_model.Gamma,obj.MPC_model.Eae,obj.MPC_model.Ap,obj.MPC_model.phi,obj.MPC_model.phi_d,obj.MPC_model.tau]=cmpc_2(A,B,Bd,p,N,Tp,Q,R);
+                
+                if isempty(obj.MPC_model.Bd)
+                    obj.MPC_model.Bd=zeros(size(obj.MPC_model.B,1),1);
+                end
+                
+                toc
+                
+                obj.MPC_model.ctrl_offset=obj.ident_models(obj.current_model_nr).offset_value(start_model_nr:start_model_nr+size(B,2)-1);
+                obj.MPC_model.output_offset=obj.ident_models(obj.current_model_nr).offset_value(end);
+                
+                obj.MPC_model.control_signals=obj.ident_models(obj.current_model_nr).inputs_to_ident(2:end);
+                
+                % zerowa probka
+                k0=1;
+                [Al,L0]=lagc(p(k0),N(k0));
+                L_t=zeros(n_in,sum(N));
+                L_t(1,1:N(1))=L0';
+                
+                % gdy wiecej kolumn w macierzy B
+                cc=N(1);
+                for k0=2:n_in;
+                    [Al,L0]=lagc(p(k0),N(k0));
+                    L_t(k0,cc+1:cc+N(k0))=L0';
+                    cc=cc+N(k0);
+                end
+                
+                obj.MPC_model.Lzerot=L_t;
+                
+                % for constraints
+                [Mu,Mu1]=Mucon(p,N,n_in,h,0.1);
+                
+                
+                obj.MPC_model.M=[Mu;-Mu;L_t;-L_t];
+                
+            end
+        end
+        
+        function obtain_DMPC_model(obj,h,Tc,Tp)
+            
+            disp('Obtaining MPC model discrete');
+            
+            if obj.ident_models(obj.current_model_nr).inputs_to_ident(1)==0
+                start_model_nr=1;
+            else
+                start_model_nr=2;
+            end
+            
+            if length(obj.current_model)==1
+                
+                Ac=obj.current_model.A;
+                Bc=obj.current_model.B(:,start_model_nr:end);
+                Cc=zeros(1,size(Ac,1));
+                Cc(1,size(Ac,1))=1;
+                Dc=zeros(1,size(Bc,2));
+                
+                
+                n=rank(obj.current_model.A);
+                X0=[zeros(n,1); obj.signals_intervals(end).original_signals(3,end)-...
+                    obj.ident_models(obj.current_model_nr).offset_value(end)];
+                
+            else
+                Ac=obj.current_model(start_model_nr).A;
+                Bc=obj.current_model(start_model_nr).B;
+                Cc=zeros(1,size(Ac,1));
+                Cc(1,size(Ac,1))=1;
+                Dc=zeros(1,size(Bc,2));
+                
+                n=rank(obj.current_model(2).A);
+                X0=[zeros(n,1); obj.signals_intervals(end).original_signals(end-2,end)-...
+                    obj.ident_models(obj.current_model_nr).offset_value(end)];
+                
+            end
+            
+            sd=c2d(ss(Ac,Bc,Cc,Dc),h);
+            
+            obj.MPC_model.h=h;
+            
+            [obj.MPC_model.Phi_Phi,obj.MPC_model.Phi_F,obj.MPC_model.Phi_R,...
+                obj.MPC_model.A, obj.MPC_model.B,obj.MPC_model.C]=dmpc(sd.A,sd.B,sd.C,Tc,Tp);
+            
+            %C=eye(size(obj.MPC_model.A));
+            
+            C=zeros(1,n+1);
+            C(end)=1;
+            
+            Q=eye(n+1);
+            R=1*eye(1,1);
+            K_ob=lqrd(obj.MPC_model.A',C',Q,R,h);
+            %K_ob=zeros(1,size(obj.MPC_model.A,1));
+            %K_ob(end)=1;
+            obj.MPC_model.K_ob=K_ob';
+            
+            obj.MPC_model.ctrl_offset=obj.ident_models(obj.current_model_nr).offset_value(start_model_nr:start_model_nr+size(obj.MPC_model.B,2)-1);
+            obj.MPC_model.output_offset=obj.ident_models(obj.current_model_nr).offset_value(end);
+            
+            obj.MPC_model.control_signals=obj.ident_models(obj.current_model_nr).inputs_to_ident(2:end);
+            
+            obj.MPC_model.Tp=Tp;
+            obj.MPC_model.Tc=Tc;
+            
+            % initial state modification
+            %{
+            input_signals_ident=[];
+            output_signal_ident=[];
+            
+            
+            for i=1:length(obj.ident_models(obj.current_model_nr).intervals)
+                input_signals_ident=[input_signals_ident obj.ident_models(obj.current_model_nr).intervals(i).input_signals];
+                output_signal_ident=[output_signal_ident obj.ident_models(obj.current_model_nr).intervals(i).output_signal];
+            end
+            
+            for i=2:length(obj.ident_models(obj.current_model_nr).inputs_to_ident)
+                if obj.ident_models(obj.current_model_nr).inputs_to_ident(i)
+                     input_signals_res(i-1,:)=interp1(1:length(input_signals_ident(i,:)),input_signals_ident(i,:),1:h:length(input_signals_ident));
+                end
+            end
+            
+            output_signals_res=interp1(1:length(output_signal_ident),output_signal_ident,1:h:length(input_signals_ident));
+
+            for i=1:size(input_signals_res,1)
+                input_signals_diff(i,:)=[0 diff(input_signals_res(i,:))];
+            end
+            
+            
+            %obj.signals_intervals(end).original_signals(3,end)-obj.ident_models(obj.current_model_nr).offset_value(end)
+            X0=zeros(n+1,1);
+
+            for i=1:length(output_signals_res)
+                X0=obj.MPC_model.A*X0+obj.MPC_model.B*input_signals_diff(:,i)+K_ob'*(output_signals_res(i)-obj.MPC_model.C*X0);
+            end
+            
+            obj.MPC_model.X0=X0;
+            %}
+        end
+        
+        function obtain_DMPC_model_FF(obj,h,Tc,Tp)
+            
+            disp('Obtaining MPC model discrete FF');
+            
+            if obj.ident_models(obj.current_model_nr).inputs_to_ident(1)==0
+                start_model_nr=1;
+                Bd=[];
+            else
+                start_model_nr=2;
+                Bd=obj.current_model.B(:,1);
+            end
+            
+            Ac=obj.current_model.A;
+            Bc=obj.current_model.B(:,start_model_nr:end);
+            Cc=zeros(1,size(Ac,1));
+            Cc(1,size(Ac,1))=1;
+            Dc=zeros(1,size(Bc,2));
+            
+            
+            n=rank(obj.current_model.A);
+            X0=[zeros(n,1); obj.signals_intervals(end).original_signals(end-2,end)-...
+                obj.ident_models(obj.current_model_nr).offset_value(end)];
+            
+            sd=c2d(ss(Ac,Bc,Cc,Dc),h);
+            
+            if ~isempty(Bd)
+                sdd_2=c2d(ss(Ac,Bd,Cc,zeros(1,size(Bd,2))),h);
+            else
+                %sdd_2=[];
+                sdd_2.B=zeros(size(Bc,1),1);
+            end
+            
+            obj.MPC_model.h=h;
+            obj.MPC_model.X0=X0;
+            
+            [obj.MPC_model.Phi_Phi,obj.MPC_model.Phi_F,obj.MPC_model.Phi_R, obj.MPC_model.Phi_Phi_d,...
+                obj.MPC_model.A, obj.MPC_model.B, obj.MPC_model.Bd,obj.MPC_model.C]=dmpc_2(sd.A,sd.B,sdd_2.B,sd.C,Tc,Tp);
+            
+            %C=eye(size(obj.MPC_model.A));
+            
+            C=zeros(1,n+1);
+            C(end)=1;
+            
+            Q=eye(n+1);
+            R=1*eye(1,1);
+            K_ob=lqrd(obj.MPC_model.A',C',Q,R,h);
+            %K_ob=zeros(1,size(obj.MPC_model.A,1));
+            %K_ob(end)=1;
+            obj.MPC_model.K_ob=K_ob';
+            
+            obj.MPC_model.ctrl_offset=obj.ident_models(obj.current_model_nr).offset_value(start_model_nr:start_model_nr+size(obj.MPC_model.B,2)-1);
+            obj.MPC_model.output_offset=obj.ident_models(obj.current_model_nr).offset_value(end);
+            
+            obj.MPC_model.control_signals=obj.ident_models(obj.current_model_nr).inputs_to_ident(2:end);
+            
+            obj.MPC_model.Tp=Tp;
+            obj.MPC_model.Tc=Tc;
+            
+            % initial state modification
+            
+            input_signals_ident=[];
+            input_signals_dist=[];
+            output_signal_ident=[];
+            
+            
+            for i=1:length(obj.ident_models(obj.current_model_nr).intervals)
+                input_signals_ident=[input_signals_ident obj.ident_models(obj.current_model_nr).intervals(i).input_signals];
+                output_signal_ident=[output_signal_ident obj.ident_models(obj.current_model_nr).intervals(i).output_signal];
+            end
+            
+            %{
+            for i=2:length(obj.ident_models(obj.current_model_nr).inputs_to_ident)
+                if obj.ident_models(obj.current_model_nr).inputs_to_ident(i)
+                     input_signals_res(i-1,:)=interp1(1:length(input_signals_ident(i,:)),input_signals_ident(i,:),1:h:length(input_signals_ident));
+                end
+            end
+            %}
+            
+            output_signals_res=interp1(1:length(output_signal_ident),output_signal_ident,1:h:length(input_signals_ident));
+            
+            
+            
+            if obj.ident_models(obj.current_model_nr).inputs_to_ident(1)
+                input_signals_dist=interp1(1:length(input_signals_ident(1,:)),input_signals_ident(1,:),1:h:length(input_signals_ident));
+                input_signals_dist_diff=[0 diff(input_signals_dist)];
+                
+                k=2;
+                
+                for i=2:length(obj.ident_models(obj.current_model_nr).inputs_to_ident)
+                    
+                    if obj.ident_models(obj.current_model_nr).inputs_to_ident(i)
+                        input_signals_res(i-1,:)=interp1(1:length(input_signals_ident(k,:)),input_signals_ident(k,:),1:h:length(input_signals_ident));
+                        k=k+1;
+                    end
+                    
+                    
+                end
+                
+            else
+                
+                k=1;
+                
+                for i=1:length(obj.ident_models(obj.current_model_nr).inputs_to_ident)
+                    if obj.ident_models(obj.current_model_nr).inputs_to_ident(i)
+                        input_signals_res(i-1,:)=interp1(1:length(input_signals_ident(k,:)),input_signals_ident(k,:),1:h:length(input_signals_ident));
+                        k=k+1;
+                    end
+                    
+                end
+                
+                input_signals_dist_diff=zeros(1,length(input_signals_res));
+                
+            end
+            
+            for i=1:size(input_signals_res,1)
+                input_signals_diff(i,:)=[0 diff(input_signals_res(i,:))];
+            end
+            
+            
+            %obj.signals_intervals(end).original_signals(end-2,end)-obj.ident_models(obj.current_model_nr).offset_value(end)
+            %{
+            X0=zeros(n+1,1);
+            
+            for i=1:length(output_signals_res)
+                X0=obj.MPC_model.A*X0+obj.MPC_model.B*input_signals_diff(:,i)+obj.MPC_model.Bd*input_signals_dist_diff(:,i)+K_ob'*(output_signals_res(i)-obj.MPC_model.C*X0);
+            end
+            
+            obj.MPC_model.X0=X0;
+            %}
+            
+        end
+        
         
         %%
         function delete_first_intervals(obj,number_of_intervals_to_delete)
@@ -2143,7 +2484,8 @@ classdef MD_ident_section < handle
                 
                 if sum_alternative<sum_original && ((obj.ident_method_params.alternative_model_method==0) ||...
                         ((obj.ident_method_params.alternative_model_method==1) && ...
-                        MD_check_model_prop( obj.alternative_model.inputs_to_ident,obj.alternative_model.model.vector,[1 1 -1],obj.alternative_model.model_params.n)));
+                        MD_check_model_prop( obj.alternative_model.inputs_to_ident,obj.alternative_model.model.vector,[1 1 -1],obj.alternative_model.model_params.n))) &&...
+                        MD_check_model_stable(obj.alternative_model.model.vector,obj.alternative_model.model_params.m);
                     
                     % swap models
                     obj.current_model_nr=obj.current_model_nr+1;
@@ -2698,6 +3040,748 @@ classdef MD_ident_section < handle
         end
         
         %%
+        function plot_signals_praca(obj,figure_nr,titles,y_labels,plot_intervals,plot_sim_intervals,plot_pull,plot_str)
+            
+            plot_signals=[];
+            %f_size=25;
+            fig=figure(figure_nr);
+            %{
+            if nargin > 1
+                fig=figure(figure_nr);
+            else
+                fig=figure(100);
+            end
+            %}
+            
+            fig.Color=[1 1 1];
+            
+            
+            for i=1:obj.inputs_nr+3
+                
+                plot_signal=[];
+                
+                for k=1:obj.current_interval-1
+                    if isempty(obj.signals_intervals(k).original_signals)==0
+                        plot_signal=[plot_signal obj.signals_intervals(k).original_signals(i,:)];
+                    end
+                end
+                
+                %size(plot_signal)
+                plot_signals(i,:)=plot_signal;
+                
+            end
+            
+            for i=1:obj.inputs_nr
+                if plot_pull
+                    subplot(obj.inputs_nr+1,1,i);
+                else
+                    subplot(obj.inputs_nr,1,i);
+                end
+                
+                plot_signal=[];
+                
+                for k=1:obj.current_interval-1
+                    if isempty(obj.signals_intervals(k).original_signals)==0
+                        hold on
+                        
+                        plot(obj.signals_intervals(k).time,obj.signals_intervals(k).original_signals(i,:),'b');
+                        if plot_intervals
+                            plot([obj.signals_intervals(k).time(end) obj.signals_intervals(k).time(end)],...
+                                [min(plot_signals(i,:)),max(plot_signals(i,:))],'g');
+                        end
+                    end
+                end
+                
+                
+                xlim([0 obj.signals_intervals(end).time(end)]);
+                
+                hold on;
+                box on;
+                grid on;
+                title(titles(i), 'interpreter', 'latex');
+                set(gca,'fontsize',plot_str.font_size_1)
+                if i<obj.inputs_nr
+                    set(gca, 'xticklabel', []);
+                end
+                y=ylabel(y_labels{i}, 'rot', 90, 'interpreter', 'latex');  % do not rotate the y label
+                set(y, 'Units', 'Normalized', 'Position', [-0.1, 0.5, 0]);
+                
+            end
+            
+            if plot_pull && 0==1
+                subplot(obj.inputs_nr+1,1,obj.inputs_nr+1);
+            else
+                subplot(obj.inputs_nr,1,obj.inputs_nr);
+                
+            end
+            hold on;
+            
+            if 0
+                
+                for k=1:obj.current_interval-1
+                    if isempty(obj.signals_intervals(k).original_signals)==0
+                        hold on
+                        plot(obj.signals_intervals(k).time,obj.signals_intervals(k).original_signals(obj.inputs_nr+1,:),'b');
+                        plot(obj.signals_intervals(k).time,obj.signals_intervals(k).original_signals(obj.inputs_nr+2,:),'r');
+                        
+                        if plot_intervals
+                            plot([obj.signals_intervals(k).time(end) obj.signals_intervals(k).time(end)],...
+                                [min(plot_signals(obj.inputs_nr+1,:)),max(plot_signals(obj.inputs_nr+1,:))],'g');
+                            
+                            if obj.signals_intervals(k).op_interval
+                                plot([obj.signals_intervals(k).op_time obj.signals_intervals(k).op_time],...
+                                    [min(plot_signals(obj.inputs_nr+1,:)),max(plot_signals(obj.inputs_nr+1,:))],'k--');
+                            end
+                        end
+                        
+                    end
+                end
+            end
+            
+            min_output_plot=min(plot_signals(obj.inputs_nr+1,:));
+            max_output_plot=max(plot_signals(obj.inputs_nr+1,:));
+            
+            if plot_sim_intervals
+                for m=1:obj.current_model_nr
+                    for i=1:length(obj.ident_models(m).intervals)-1
+                        plot(obj.ident_models(m).intervals(i).time, obj.ident_models(m).intervals(i).simulated_output+obj.ident_models(m).offset_value(end),'m');
+                        
+                        if ~isempty(obj.ident_models(m).intervals(i).interval_type)
+                            text(0.5*(obj.ident_models(m).intervals(i).time(1)+obj.ident_models(m).intervals(i).time(end)),(min_output_plot+max_output_plot)*0.5,...
+                                obj.ident_models(m).intervals(i).interval_type,'FontSize', plot_str.font_size_1, 'Interpreter', 'latex');
+                        end
+                    end
+                end
+            end
+            %obj.ident_models(m).intervals(i).interval_type
+            xlim([0 obj.signals_intervals(end).time(end)]);
+            xlabel('t [s]', 'interpreter', 'latex');
+            %{
+            xlim([obj.signals_intervals(1).time(1) obj.signals_intervals(end).time(end)]);
+            title('Output temperature and temperature set point', 'interpreter', 'latex');
+            %xlabel('Time [s]', 'interpreter', 'latex');
+            set(gca,'fontsize',plot_str.font_size_1)
+            if plot_pull
+                set(gca, 'xticklabel', []);
+            else
+                xlabel('t [s]', 'interpreter', 'latex');
+            end
+            y=ylabel(['Temp. [$^\circ$C]'], 'rot', 90, 'interpreter', 'latex');  % do not rotate the y label
+            set(y, 'Units', 'Normalized', 'Position', [-0.1, 0.5, 0]);
+            %lgd=legend('Output temperature','Temperature set point','Location','northeast');
+            %lgd.FontSize=f_size;
+            box on;
+            grid on;
+            %}
+            
+            %if plot_pull
+            
+            %subplot(obj.inputs_nr+2,1,obj.inputs_nr+2);
+            fig=figure(figure_nr+500);
+            fig.Color=[1 1 1];
+            subplot(2,1,1);
+            hold on;
+            for k=1:obj.current_interval-1
+                if length(obj.signals_intervals)>=i && isempty(obj.signals_intervals(i).original_signals)==0
+                    hold on
+                    plot(obj.signals_intervals(k).time,obj.signals_intervals(k).original_signals(obj.inputs_nr+3,:),'b');
+                    
+                    %{
+                    if plot_intervals
+                        plot([obj.signals_intervals(k).time(end) obj.signals_intervals(k).time(end)],...
+                            [min(plot_signals(obj.inputs_nr+3,:))-1,max(plot_signals(obj.inputs_nr+3,:))+1],'g');
+                    end
+                    %}
+                end
+            end
+            
+            xlim([0 obj.signals_intervals(end).time(end)]);
+            ylim([min(plot_signals(obj.inputs_nr+3,:))-5 max(plot_signals(obj.inputs_nr+3,:))+5]);
+            title('Wydobycie szkla', 'interpreter', 'latex');
+            xlabel('t [s]', 'interpreter', 'latex');
+            set(gca,'fontsize',plot_str.font_size_1)
+            y=ylabel(['Wyd. [t/24h]'], 'rot', 90, 'interpreter', 'latex');  % do not rotate the y label
+            set(y, 'Units', 'Normalized', 'Position', [-0.1, 0.5, 0]);
+            box on;
+            grid on;
+            
+            %end
+            
+            % Big plot for simulated temperature and real data
+            
+            if nargin > 1
+                fig=figure(figure_nr+400);
+            else
+                fig=figure(521);
+            end
+            
+            
+            fig.Color=[1 1 1];
+            
+            min_values=[];
+            max_values=[];
+            
+            %min_output_plot=min(plot_signals(obj.inputs_nr+1,:));
+            %max_output_plot=max(plot_signals(obj.inputs_nr+1,:));
+            
+            % op number for graph
+            op_number=1;
+            
+            for k=1:obj.current_interval-1
+                if isempty(obj.signals_intervals(k).original_signals)==0
+                    hold on
+                    p1=plot(obj.signals_intervals(k).time,obj.signals_intervals(k).original_signals(obj.inputs_nr+1,:),'b');
+                    p2=plot(obj.signals_intervals(k).time,obj.signals_intervals(k).original_signals(obj.inputs_nr+2,:),'r');
+                    
+                    if plot_intervals
+                        plot([obj.signals_intervals(k).time(end) obj.signals_intervals(k).time(end)],...
+                            [min_output_plot,max_output_plot],'g');
+                        
+                        if obj.signals_intervals(k).op_interval
+                            plot([obj.signals_intervals(k).op_time obj.signals_intervals(k).op_time],...
+                                [min_output_plot,max_output_plot],'k--');
+                            text(obj.signals_intervals(k).op_time,min_output_plot-plot_str.offset_1,...
+                                ['$t_{0' num2str(op_number) '}$'],'FontSize',plot_str.font_size_1,'Interpreter', 'latex');
+                            %['t_{' num2str(op_number) '}'],'FontSize',obj.ident_method_params.font_size);
+                            
+                            op_number=op_number+1;
+                        end
+                    end
+                    
+                    min_values=[min_values min(obj.signals_intervals(k).original_signals(obj.inputs_nr+1,:))];
+                    max_values=[max_values max(obj.signals_intervals(k).original_signals(obj.inputs_nr+1,:))];
+                    
+                end
+            end
+            
+            % letter position
+            % pos_y=obj.ident_models(1).offset_value(end);
+            
+            for m=1:obj.current_model_nr
+                for i=1:length(obj.ident_models(m).intervals)-1
+                    
+                    if m>1 && ~isempty(obj.ident_models(m).intervals(i).interval_type) && obj.ident_models(m).intervals(i).interval_type=='I'
+                        %plot(obj.ident_models(m).intervals(i).time, obj.ident_models(m).intervals(i).simulated_output+obj.ident_models(m).offset_value(end),'c');
+                    else
+                        p3=plot(obj.ident_models(m).intervals(i).time, obj.ident_models(m).intervals(i).simulated_output+obj.ident_models(m).offset_value(end),'m','LineWidth',1.5);
+                    end
+                    
+                    if obj.ident_models(m).intervals(i).interval_type=='R' %~isempty(obj.ident_models(m).intervals(i).interval_type)
+                        %text(0.5*(obj.ident_models(m).intervals(i).time(1)+obj.ident_models(m).intervals(i).time(end)),obj.ident_models(m).offset_value(end),...
+                        %    ['$' num2str(obj.ident_models(m).intervals(i).interval_type) '$'],'FontSize',obj.ident_method_params.font_size, 'Interpreter', 'latex');
+                        
+                        % obj.ident_models(1).offset_value(end)
+                        
+                        text(obj.ident_models(m).intervals(i).time(1)+plot_str.offset_2,(min_output_plot+max_output_plot)*0.5,...
+                            ['$' num2str(obj.ident_models(m).intervals(i).interval_type) '$'],'FontSize',plot_str.font_size_1, 'Interpreter', 'latex');
+                    end
+                    
+                end
+                
+                
+            end
+            
+            ylim([min(min_values)-plot_str.offset_4 max(max_values)+plot_str.offset_4]);
+            xlabel('t [s]', 'interpreter', 'latex');
+            set(gca,'fontsize',plot_str.font_size_1)
+            y=ylabel(['Temp. [$^\circ$C]'], 'rot', 90, 'interpreter', 'latex');  % do not rotate the y label
+            set(y, 'Units', 'Normalized', 'Position', [-0.1, 0.5, 0]);
+            box on;
+            grid on;
+            xlim([0 obj.signals_intervals(end).time(end)]);
+            
+            
+            % plotting boxes
+            if ~isempty(obj.ident_models)
+                x_start=obj.ident_models(1).intervals(1).time(1);
+                %x_end=obj.ident_models(1).intervals(obj.ident_models(1).intervals_sim(1)-1).time(end);
+                x_end=obj.ident_models(1).intervals(length(obj.ident_models(1).intervals)-length(obj.ident_models(1).intervals_sim)-1).time(end);
+                
+                p4=patch([x_start x_end x_end x_start],...
+                    [min_output_plot min_output_plot  max_output_plot max_output_plot],...
+                    [0 1 0],'FaceAlpha',0.1,'LineStyle','none');
+                %annotation('textarrow',[x_start x_end],[max(plot_signals(obj.inputs_nr+1,:)) max(plot_signals(obj.inputs_nr+1,:))],'FontSize',13,'Linewidth',2)
+                
+                if plot_str.lines_nr==1
+                    text(x_start+plot_str.offset_3,0.5*(min_output_plot+max_output_plot),'$MODEL \; START.$','FontSize',...
+                        plot_str.font_size_1, 'Interpreter', 'latex');
+                else
+                    text(x_start+plot_str.offset_3,0.5005*(min_output_plot+max_output_plot),'$MODEL$','FontSize',...
+                        plot_str.font_size_2, 'Interpreter', 'latex');
+                    
+                    text(x_start+plot_str.offset_3,0.4995*(min_output_plot+max_output_plot),'$START.$','FontSize',...
+                        plot_str.font_size_2, 'Interpreter', 'latex');
+                end
+                
+                interval_offset=0;
+                for i=1:length(obj.ident_models)
+                    
+                    %disp(['Model ' num2str(i) ' current interval ']);
+                    %obj.ident_models(i).intervals_sim(1)-interval_prev_end
+                    if length(obj.ident_models(i).intervals_sim)>0
+                        x_start=obj.ident_models(i).intervals(length(obj.ident_models(i).intervals)-length(obj.ident_models(i).intervals_sim)).time(1);
+                        x_end=obj.ident_models(i).intervals(end-1).time(end);
+                        %interval_prev_end=obj.ident_models(i).intervals_sim(end);
+                        
+                        if mod(i,2)==0
+                            p5=patch([x_start x_end x_end x_start],...
+                                [min_output_plot min_output_plot  max_output_plot max_output_plot],...
+                                [1 1 0],'FaceAlpha',0.1,'LineStyle','none');
+                        else
+                            p6=patch([x_start x_end x_end x_start],...
+                                [min_output_plot min_output_plot  max_output_plot max_output_plot],...
+                                [0 1 1],'FaceAlpha',0.1,'LineStyle','none');
+                        end
+                    end
+                    
+                end
+                
+            end
+            
+            % legend
+            if plot_str.legend_loc==1
+                legend([p1 p2 p3], 'Temp. mierzona','Temp. zadana','Temp. symulowana','Location','northeast');
+            else
+                legend([p1 p2 p3], 'Temp. mierzona','Temp. zadana','Temp. symulowana','Location','southeast');
+            end
+            
+        end
+        
+        %%
+        
+        function plot_output_praca(obj,figure_nr,plot_intervals,plot_str)
+            
+            plot_signals=[];
+            
+            for i=1:obj.inputs_nr+3
+                
+                plot_signal=[];
+                
+                for k=1:obj.current_interval-1
+                    if isempty(obj.signals_intervals(k).original_signals)==0
+                        plot_signal=[plot_signal obj.signals_intervals(k).original_signals(i,:)];
+                    end
+                end
+                
+                %size(plot_signal)
+                plot_signals(i,:)=plot_signal;
+                
+            end
+            
+            
+            min_output_plot=min(plot_signals(obj.inputs_nr+1,:));
+            max_output_plot=max(plot_signals(obj.inputs_nr+1,:));
+            
+            
+            % Big plot for simulated temperature and real data
+            
+            if nargin > 1
+                fig=figure(figure_nr+400);
+            else
+                fig=figure(521);
+            end
+            
+            
+            fig.Color=[1 1 1];
+            
+            min_values=[];
+            max_values=[];
+            
+            %min_output_plot=min(plot_signals(obj.inputs_nr+1,:));
+            %max_output_plot=max(plot_signals(obj.inputs_nr+1,:));
+            
+            % op number for graph
+            op_number=1;
+            
+            for k=1:obj.current_interval-1
+                if isempty(obj.signals_intervals(k).original_signals)==0
+                    hold on
+                    p1=plot(obj.signals_intervals(k).time,obj.signals_intervals(k).original_signals(obj.inputs_nr+1,:),'b');
+                    p2=plot(obj.signals_intervals(k).time,obj.signals_intervals(k).original_signals(obj.inputs_nr+2,:),'r');
+                    
+                    if plot_intervals
+                        plot([obj.signals_intervals(k).time(end) obj.signals_intervals(k).time(end)],...
+                            [min_output_plot,max_output_plot],'g');
+                        
+                        if obj.signals_intervals(k).op_interval
+                            plot([obj.signals_intervals(k).op_time obj.signals_intervals(k).op_time],...
+                                [min_output_plot,max_output_plot],'k--');
+                            text(obj.signals_intervals(k).op_time,min_output_plot-plot_str.offset_1,...
+                                ['$t_{0' num2str(op_number) '}$'],'FontSize',plot_str.font_size_1,'Interpreter', 'latex');
+                            %['t_{' num2str(op_number) '}'],'FontSize',obj.ident_method_params.font_size);
+                            
+                            op_number=op_number+1;
+                        end
+                    end
+                    
+                    min_values=[min_values min(obj.signals_intervals(k).original_signals(obj.inputs_nr+1,:))];
+                    max_values=[max_values max(obj.signals_intervals(k).original_signals(obj.inputs_nr+1,:))];
+                    
+                end
+            end
+            
+            % letter position
+            % pos_y=obj.ident_models(1).offset_value(end);
+            
+            for m=1:obj.current_model_nr
+                for i=1:length(obj.ident_models(m).intervals)-1
+                    
+                    if m>1 && ~isempty(obj.ident_models(m).intervals(i).interval_type) && obj.ident_models(m).intervals(i).interval_type=='I'
+                        %plot(obj.ident_models(m).intervals(i).time, obj.ident_models(m).intervals(i).simulated_output+obj.ident_models(m).offset_value(end),'c');
+                    else
+                        p3=plot(obj.ident_models(m).intervals(i).time, obj.ident_models(m).intervals(i).simulated_output+obj.ident_models(m).offset_value(end),'m','LineWidth',1.5);
+                    end
+                    
+                    if obj.ident_models(m).intervals(i).interval_type=='R' %~isempty(obj.ident_models(m).intervals(i).interval_type)
+                        %text(0.5*(obj.ident_models(m).intervals(i).time(1)+obj.ident_models(m).intervals(i).time(end)),obj.ident_models(m).offset_value(end),...
+                        %    ['$' num2str(obj.ident_models(m).intervals(i).interval_type) '$'],'FontSize',obj.ident_method_params.font_size, 'Interpreter', 'latex');
+                        
+                        % obj.ident_models(1).offset_value(end)
+                        
+                        text(obj.ident_models(m).intervals(i).time(1)+plot_str.offset_2,(min_output_plot+max_output_plot)*0.5,...
+                            ['$' num2str(obj.ident_models(m).intervals(i).interval_type) '$'],'FontSize',plot_str.font_size_1, 'Interpreter', 'latex');
+                    end
+                    
+                end
+                
+                
+            end
+            
+            ylim([min(min_values)-plot_str.offset_4 max(max_values)+plot_str.offset_4]);
+            xlabel('t [s]', 'interpreter', 'latex');
+            set(gca,'fontsize',plot_str.font_size_1)
+            y=ylabel(['Temp. [$^\circ$C]'], 'rot', 90, 'interpreter', 'latex');  % do not rotate the y label
+            set(y, 'Units', 'Normalized', 'Position', [-0.1, 0.5, 0]);
+            box on;
+            grid on;
+            xlim([0 obj.signals_intervals(end).time(end)]);
+            
+            
+            % plotting boxes
+            if ~isempty(obj.ident_models)
+                x_start=obj.ident_models(1).intervals(1).time(1);
+                %x_end=obj.ident_models(1).intervals(obj.ident_models(1).intervals_sim(1)-1).time(end);
+                x_end=obj.ident_models(1).intervals(length(obj.ident_models(1).intervals)-length(obj.ident_models(1).intervals_sim)-1).time(end);
+                
+                p4=patch([x_start x_end x_end x_start],...
+                    [min_output_plot min_output_plot  max_output_plot max_output_plot],...
+                    [0 1 0],'FaceAlpha',0.1,'LineStyle','none');
+                %annotation('textarrow',[x_start x_end],[max(plot_signals(obj.inputs_nr+1,:)) max(plot_signals(obj.inputs_nr+1,:))],'FontSize',13,'Linewidth',2)
+                
+                if plot_str.lines_nr==1
+                    text(x_start+plot_str.offset_3,0.5*(min_output_plot+max_output_plot),'$MODEL \; START.$','FontSize',...
+                        plot_str.font_size_1, 'Interpreter', 'latex');
+                else
+                    text(x_start+plot_str.offset_3,0.5005*(min_output_plot+max_output_plot),'$MODEL$','FontSize',...
+                        plot_str.font_size_2, 'Interpreter', 'latex');
+                    
+                    text(x_start+plot_str.offset_3,0.4995*(min_output_plot+max_output_plot),'$START.$','FontSize',...
+                        plot_str.font_size_2, 'Interpreter', 'latex');
+                end
+                
+                interval_offset=0;
+                for i=1:length(obj.ident_models)
+                    
+                    %disp(['Model ' num2str(i) ' current interval ']);
+                    %obj.ident_models(i).intervals_sim(1)-interval_prev_end
+                    if length(obj.ident_models(i).intervals_sim)>0
+                        x_start=obj.ident_models(i).intervals(length(obj.ident_models(i).intervals)-length(obj.ident_models(i).intervals_sim)).time(1);
+                        x_end=obj.ident_models(i).intervals(end-1).time(end);
+                        %interval_prev_end=obj.ident_models(i).intervals_sim(end);
+                        
+                        if mod(i,2)==0
+                            p5=patch([x_start x_end x_end x_start],...
+                                [min_output_plot min_output_plot  max_output_plot max_output_plot],...
+                                [1 1 0],'FaceAlpha',0.1,'LineStyle','none');
+                        else
+                            p6=patch([x_start x_end x_end x_start],...
+                                [min_output_plot min_output_plot  max_output_plot max_output_plot],...
+                                [0 1 1],'FaceAlpha',0.1,'LineStyle','none');
+                        end
+                    end
+                    
+                end
+                
+            end
+            
+            % legend
+            if plot_str.legend_loc==1
+                legend([p1 p2 p3], 'Temp. symulowana-mdl. PDE','Temp. zadana','Temp. symulowana-mdl. lin.','Location','northeast');
+            else
+                legend([p1 p2 p3], 'Temp. symulowana-mdl. PDE','Temp. zadana','Temp. symulowana-mdl. lin.','Location','southeast');
+            end
+            
+        end
+        
+        %% plot signals MMAR
+        
+        function plot_signals_MMAR(obj,figure_nr,titles,y_labels,plot_intervals,plot_sim_intervals,plot_str,FH_sec)
+            
+            plot_signals=[];
+            %f_size=25;
+            fig=figure(figure_nr);
+            fig.Color=[1 1 1];
+            
+            
+            for i=1:obj.inputs_nr+3
+                
+                plot_signal=[];
+                
+                for k=1:obj.current_interval-1
+                    if isempty(obj.signals_intervals(k).original_signals)==0
+                        plot_signal=[plot_signal obj.signals_intervals(k).original_signals(i,:)];
+                    end
+                end
+                
+                %size(plot_signal)
+                plot_signals(i,:)=plot_signal;
+                
+            end
+            
+            %%%%%%%%%%%%%%%%%%%%PULL
+            
+            subplot(2,1,1);
+            
+            time_signal=[];
+            plot_signal_1=[];
+            plot_signal_2=[];
+            
+            for k=1:obj.current_interval-1
+                if isempty(obj.signals_intervals(k).original_signals)==0
+                    %hold on
+                    
+                    %plot(obj.signals_intervals(k).time,FH_sec.intervals(k).signals(end-1,:),'b');
+                    %plot(obj.signals_intervals(k).time,FH_sec.intervals(k).signals(end,:),'r');
+                    
+                    time_signal=[time_signal obj.signals_intervals(k).time];
+                    plot_signal_1=[plot_signal_1 FH_sec.intervals(k).signals(end-1,:)];
+                    plot_signal_2=[plot_signal_2 FH_sec.intervals(k).signals(end,:)];
+                    
+                    
+                    %{
+                        if plot_intervals
+                            plot([obj.signals_intervals(k).time(end) obj.signals_intervals(k).time(end)],...
+                                [min(plot_signals(obj.inputs_nr+3,:))-1,max(plot_signals(obj.inputs_nr+3,:))+1],'g');
+                                 %[min(FH_sec.intervals(k).signals(end-1,:)),max(FH_sec.intervals(k).signals(end-1,:))],'g');
+                                %[min(FH_sec.intervals(k).signals(end-1,:)),max(FH_sec.intervals(k).signals(end-1,:))],'g');
+
+                        end
+                    %}
+                end
+            end
+            
+            hold on;
+            plot(time_signal, plot_signal_1);
+            plot(time_signal, plot_signal_2);
+            
+            xlim([obj.signals_intervals(1).time(1) obj.signals_intervals(end).time(end)]);
+            %ylim([50 80]);
+            legend('Wyd. rzeczywiste', 'Wyd. zapisane');
+            
+            %hold on;
+            box on;
+            grid on;
+            title('Wydobycie szkla', 'interpreter', 'latex');
+            set(gca,'fontsize',plot_str.font_size_1)
+            xlabel('t [s]', 'interpreter', 'latex');
+            y=ylabel(['Wyd. [t/24h]'], 'rot', 90, 'interpreter', 'latex');  % do not rotate the y label
+            set(y, 'Units', 'Normalized', 'Position', [-0.1, 0.5, 0]);
+            
+        end
+        
+        %%
+        
+        
+        
+        
+        %%
+        
+        function plot_inputs_praca(obj,figure_nr,titles,y_labels,plot_intervals,plot_sim_intervals,plot_str,section_sim,interval_width,MPC_del)
+            
+            plot_signals=[];
+            %f_size=25;
+            fig=figure(figure_nr);
+            %{
+            if nargin > 1
+                fig=figure(figure_nr);
+            else
+                fig=figure(100);
+            end
+            %}
+            
+            fig.Color=[1 1 1];
+            
+            
+            for i=1:obj.inputs_nr+3
+                
+                plot_signal=[];
+                
+                for k=1:obj.current_interval-1
+                    if isempty(obj.signals_intervals(k).original_signals)==0
+                        plot_signal=[plot_signal obj.signals_intervals(k).original_signals(i,:)];
+                    end
+                end
+                
+                %size(plot_signal)
+                plot_signals(i,:)=plot_signal;
+                
+            end
+            
+            for i=1:obj.inputs_nr
+                
+                subplot(obj.inputs_nr,1,i);
+                
+                
+                plot_signal=[];
+                
+                for k=1:obj.current_interval-1
+                    if isempty(obj.signals_intervals(k).original_signals)==0
+                        hold on
+                        
+                        plot(obj.signals_intervals(k).time,obj.signals_intervals(k).original_signals(i,:),'b');
+                        if plot_intervals
+                            plot([obj.signals_intervals(k).time(end) obj.signals_intervals(k).time(end)],...
+                                [min(plot_signals(i,:)),max(plot_signals(i,:))],'g');
+                            
+                            if i==2
+                                
+                                if k==1 && strcmp(section_sim.applied_controller(k).input_1,'PID')
+                                    patch([obj.signals_intervals(k).time(end)-interval_width obj.signals_intervals(k).time(end) obj.signals_intervals(k).time(end) obj.signals_intervals(k).time(end)-interval_width],...
+                                        [min(plot_signals(i,:)) min(plot_signals(i,:))  max(plot_signals(i,:)) max(plot_signals(i,:))],...
+                                        [0 1 1],'FaceAlpha',0.1,'LineStyle','none');
+                                elseif k>1 && strcmp(section_sim.applied_controller(k).input_1,'PID') && strcmp(section_sim.applied_controller(k-1).input_1,'PID')
+                                    patch([obj.signals_intervals(k).time(end)-interval_width obj.signals_intervals(k).time(end) obj.signals_intervals(k).time(end) obj.signals_intervals(k).time(end)-interval_width],...
+                                        [min(plot_signals(i,:)) min(plot_signals(i,:))  max(plot_signals(i,:)) max(plot_signals(i,:))],...
+                                        [0 1 1],'FaceAlpha',0.1,'LineStyle','none');
+                                elseif k>1 && strcmp(section_sim.applied_controller(k).input_1,'PID') && ~strcmp(section_sim.applied_controller(k-1).input_1,'PID')
+                                    
+                                    patch([obj.signals_intervals(k).time(end)-interval_width obj.signals_intervals(k).time(end)-(interval_width-MPC_del)...
+                                        obj.signals_intervals(k).time(end)-(interval_width-MPC_del) obj.signals_intervals(k).time(end)-interval_width],...
+                                        [min(plot_signals(i,:)) min(plot_signals(i,:))  max(plot_signals(i,:)) max(plot_signals(i,:))],...
+                                        [1 1 0],'FaceAlpha',0.1,'LineStyle','none');
+                                    
+                                    patch([obj.signals_intervals(k).time(end)-(interval_width-MPC_del) obj.signals_intervals(k).time(end)...
+                                        obj.signals_intervals(k).time(end) obj.signals_intervals(k).time(end)-(interval_width-MPC_del)],...
+                                        [min(plot_signals(i,:)) min(plot_signals(i,:))  max(plot_signals(i,:)) max(plot_signals(i,:))],...
+                                        [0 1 1],'FaceAlpha',0.1,'LineStyle','none');
+                                elseif k>1 && strcmp(section_sim.applied_controller(k).input_1,'MPC') && strcmp(section_sim.applied_controller(k-1).input_1,'MPC')
+                                    patch([obj.signals_intervals(k).time(end)-interval_width obj.signals_intervals(k).time(end) obj.signals_intervals(k).time(end) obj.signals_intervals(k).time(end)-interval_width],...
+                                        [min(plot_signals(i,:)) min(plot_signals(i,:))  max(plot_signals(i,:)) max(plot_signals(i,:))],...
+                                        [1 1 0],'FaceAlpha',0.1,'LineStyle','none');
+                                elseif k>1 && strcmp(section_sim.applied_controller(k).input_1,'MPC') && ~strcmp(section_sim.applied_controller(k-1).input_1,'MPC')
+                                    
+                                    patch([obj.signals_intervals(k).time(end)-interval_width obj.signals_intervals(k).time(end)-(interval_width-MPC_del)...
+                                        obj.signals_intervals(k).time(end)-(interval_width-MPC_del) obj.signals_intervals(k).time(end)-interval_width],...
+                                        [min(plot_signals(i,:)) min(plot_signals(i,:))  max(plot_signals(i,:)) max(plot_signals(i,:))],...
+                                        [0 1 1],'FaceAlpha',0.1,'LineStyle','none');
+                                    
+                                    
+                                    patch([obj.signals_intervals(k).time(end)-(interval_width-MPC_del) obj.signals_intervals(k).time(end)...
+                                        obj.signals_intervals(k).time(end) obj.signals_intervals(k).time(end)-(interval_width-MPC_del)],...
+                                        [min(plot_signals(i,:)) min(plot_signals(i,:))  max(plot_signals(i,:)) max(plot_signals(i,:))],...
+                                        [1 1 0],'FaceAlpha',0.1,'LineStyle','none');
+                                end
+                                
+                            elseif i==3
+                                
+                                %{
+                                if strcmp(section_sim.applied_controller(k).input_2,'PID')
+                                    patch([obj.signals_intervals(k).time(end)-250 obj.signals_intervals(k).time(end) obj.signals_intervals(k).time(end) obj.signals_intervals(k).time(end)-250],...
+                                        [min(plot_signals(i,:)) min(plot_signals(i,:))  max(plot_signals(i,:)) max(plot_signals(i,:))],...
+                                        [0 1 1],'FaceAlpha',0.1,'LineStyle','none');
+                                elseif strcmp(section_sim.applied_controller(k).input_2,'MPC')
+                                    patch([obj.signals_intervals(k).time(end)-250 obj.signals_intervals(k).time(end) obj.signals_intervals(k).time(end) obj.signals_intervals(k).time(end)-250],...
+                                        [min(plot_signals(i,:)) min(plot_signals(i,:))  max(plot_signals(i,:)) max(plot_signals(i,:))],...
+                                        [1 1 0],'FaceAlpha',0.1,'LineStyle','none');
+                                end
+                                %}
+                                
+                                
+                                if k==1 && strcmp(section_sim.applied_controller(k).input_2,'PID')
+                                    patch([obj.signals_intervals(k).time(end)-interval_width obj.signals_intervals(k).time(end)...
+                                        obj.signals_intervals(k).time(end) obj.signals_intervals(k).time(end)-interval_width],...
+                                        [min(plot_signals(i,:)) min(plot_signals(i,:))  max(plot_signals(i,:)) max(plot_signals(i,:))],...
+                                        [0 1 1],'FaceAlpha',0.1,'LineStyle','none');
+                                elseif k>1 && strcmp(section_sim.applied_controller(k).input_2,'PID') && strcmp(section_sim.applied_controller(k-1).input_2,'PID')
+                                    patch([obj.signals_intervals(k).time(end)-interval_width obj.signals_intervals(k).time(end)...
+                                        obj.signals_intervals(k).time(end) obj.signals_intervals(k).time(end)-interval_width],...
+                                        [min(plot_signals(i,:)) min(plot_signals(i,:))  max(plot_signals(i,:)) max(plot_signals(i,:))],...
+                                        [0 1 1],'FaceAlpha',0.1,'LineStyle','none');
+                                elseif k>1 && strcmp(section_sim.applied_controller(k).input_2,'PID') && ~strcmp(section_sim.applied_controller(k-1).input_2,'PID')
+                                    
+                                    patch([obj.signals_intervals(k).time(end)-interval_width obj.signals_intervals(k).time(end)-(interval_width-MPC_del)...
+                                        obj.signals_intervals(k).time(end)-(interval_width-MPC_del) obj.signals_intervals(k).time(end)-interval_width],...
+                                        [min(plot_signals(i,:)) min(plot_signals(i,:))  max(plot_signals(i,:)) max(plot_signals(i,:))],...
+                                        [1 1 0],'FaceAlpha',0.1,'LineStyle','none');
+                                    
+                                    patch([obj.signals_intervals(k).time(end)-(interval_width-MPC_del) obj.signals_intervals(k).time(end)...
+                                        obj.signals_intervals(k).time(end) obj.signals_intervals(k).time(end)-(interval_width-MPC_del)],...
+                                        [min(plot_signals(i,:)) min(plot_signals(i,:))  max(plot_signals(i,:)) max(plot_signals(i,:))],...
+                                        [0 1 1],'FaceAlpha',0.1,'LineStyle','none');
+                                    
+                                elseif k>1 && strcmp(section_sim.applied_controller(k).input_2,'MPC') && strcmp(section_sim.applied_controller(k-1).input_2,'MPC')
+                                    patch([obj.signals_intervals(k).time(end)-interval_width obj.signals_intervals(k).time(end)...
+                                        obj.signals_intervals(k).time(end) obj.signals_intervals(k).time(end)-interval_width],...
+                                        [min(plot_signals(i,:)) min(plot_signals(i,:))  max(plot_signals(i,:)) max(plot_signals(i,:))],...
+                                        [1 1 0],'FaceAlpha',0.1,'LineStyle','none');
+                                elseif k>1 && strcmp(section_sim.applied_controller(k).input_2,'MPC') && ~strcmp(section_sim.applied_controller(k-1).input_2,'MPC')
+                                    
+                                    patch([obj.signals_intervals(k).time(end)-interval_width obj.signals_intervals(k).time(end)-(interval_width-MPC_del)...
+                                        obj.signals_intervals(k).time(end)-(interval_width-MPC_del) obj.signals_intervals(k).time(end)-interval_width],...
+                                        [min(plot_signals(i,:)) min(plot_signals(i,:))  max(plot_signals(i,:)) max(plot_signals(i,:))],...
+                                        [0 1 1],'FaceAlpha',0.1,'LineStyle','none');
+                                    
+                                    patch([obj.signals_intervals(k).time(end)-(interval_width-MPC_del) obj.signals_intervals(k).time(end)...
+                                        obj.signals_intervals(k).time(end) obj.signals_intervals(k).time(end)-(interval_width-MPC_del)],...
+                                        [min(plot_signals(i,:)) min(plot_signals(i,:))  max(plot_signals(i,:)) max(plot_signals(i,:))],...
+                                        [1 1 0],'FaceAlpha',0.1,'LineStyle','none');
+                                end
+                                
+                                
+                            end
+                            
+                        end
+                    end
+                end
+                
+                
+                xlim([0 obj.signals_intervals(end).time(end)]);
+                
+                hold on;
+                box on;
+                grid on;
+                title(titles(i), 'interpreter', 'latex');
+                set(gca,'fontsize',plot_str.font_size_1)
+                if i<obj.inputs_nr
+                    set(gca, 'xticklabel', []);
+                end
+                y=ylabel(y_labels{i}, 'rot', 90, 'interpreter', 'latex');  % do not rotate the y label
+                set(y, 'Units', 'Normalized', 'Position', [-0.1, 0.5, 0]);
+                
+            end
+            
+            min_output_plot=min(plot_signals(obj.inputs_nr+1,:));
+            max_output_plot=max(plot_signals(obj.inputs_nr+1,:));
+            
+            if plot_sim_intervals
+                for m=1:obj.current_model_nr
+                    for i=1:length(obj.ident_models(m).intervals)-1
+                        plot(obj.ident_models(m).intervals(i).time, obj.ident_models(m).intervals(i).simulated_output+obj.ident_models(m).offset_value(end),'m');
+                        
+                        if ~isempty(obj.ident_models(m).intervals(i).interval_type)
+                            text(0.5*(obj.ident_models(m).intervals(i).time(1)+obj.ident_models(m).intervals(i).time(end)),(min_output_plot+max_output_plot)*0.5,...
+                                obj.ident_models(m).intervals(i).interval_type,'FontSize', plot_str.font_size_1, 'Interpreter', 'latex');
+                        end
+                    end
+                end
+            end
+            %obj.ident_models(m).intervals(i).interval_type
+            xlim([0 obj.signals_intervals(end).time(end)]);
+            xlabel('t [s]', 'interpreter', 'latex');
+            
+        end
+        
+        %%
         
         function plot_eigenvalues(obj,plot_str,figure_nr)
             
@@ -2772,6 +3856,27 @@ classdef MD_ident_section < handle
             
         end
         
+        function calculate_MSE(obj)
+            
+            SEV=0;
+            
+            for i=1:length(obj.ident_models)
+                for j=1:length(obj.ident_models(i).intervals)
+                    if obj.ident_models(i).intervals(j).interval_type ~= 'I'
+                        if ~isempty(obj.ident_models(i).intervals(j).model_diff)
+                            SEV=SEV+obj.ident_models(i).intervals(j).model_diff;
+                        end
+                    elseif i==1
+                        if ~isempty(obj.ident_models(i).intervals(j).model_diff)
+                            SEV=SEV+obj.ident_models(i).intervals(j).model_diff;
+                        end
+                    end
+                end
+            end
+            
+            disp(['SEV value ' num2str(SEV)]);
+            
+        end
         
     end
 end

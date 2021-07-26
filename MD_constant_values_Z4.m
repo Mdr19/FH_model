@@ -62,6 +62,7 @@ classdef MD_constant_values_Z4
         disp_message=0;
         method_exact_mode=0;      %0
         %GS_threshold=0.25;
+        IV_method=1;              % metoda zmiennych instrumentalnych
         model_diff_par=1;
         %constraints=1;
         diff_mode=0;
@@ -142,60 +143,3 @@ classdef MD_constant_values_Z4
         
     end
 end
-
-% dotychczasowe
-
-%{
-
-ident_models_nr=7;                              % bylo 7
-
-        ident_models1_N=3;
-        ident_models1_M=4;
-        ident_models1_h=50
-        ident_models1_n=1;
-        ident_models1_m=3;
-        ident_models1_eta=[1 1 1 1 1];
-        
-        ident_models2_N=5;
-        ident_models2_M=6;
-        ident_models2_h=150;
-        ident_models2_n=1;
-        ident_models2_m=4;                  %bylo 4
-        ident_models2_eta=[1 1 1 1 1 1];
-        
-        ident_models3_N=5;
-        ident_models3_M=6;
-        ident_models3_h=500;            %!!!!!!!!!!!!!!!!!! 500 dla rzeczywistych
-        ident_models3_n=1;
-        ident_models3_m=4;
-        ident_models3_eta=[1 1 1 1 1 1];
-        
-        ident_models4_N=3;
-        ident_models4_M=4;
-        ident_models4_h=100;        %100
-        ident_models4_n=1;
-        ident_models4_m=3;
-        ident_models4_eta=[1 1 1 1 1];
-        
-        ident_models5_N=3;
-        ident_models5_M=4;
-        ident_models5_h=750;         %25
-        ident_models5_n=1;
-        ident_models5_m=3;
-        ident_models5_eta=[1 1 1 1 1];
-        
-        ident_models6_N=3;
-        ident_models6_M=4;
-        ident_models6_h=50;
-        ident_models6_n=1;
-        ident_models6_m=4;
-        ident_models6_eta=[1 1 1 1 1 1];
-        
-        ident_models7_N=5;
-        ident_models7_M=6;
-        ident_models7_h=35;
-        ident_models7_n=1;
-        ident_models7_m=3;
-        ident_models7_eta=[1 1 1 1 1];
-        
-        %}

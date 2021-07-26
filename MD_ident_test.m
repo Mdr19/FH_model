@@ -7,47 +7,6 @@ format long
 
 T=MD_constant_values.T_sim; %1000
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% strojenie
-
-% 0 - 02.17     - problem obs. 1. interwa³ dla Z4
-
-% skok
-
-% 101 - 04.23    - OK dla Z4, OK dla Z3
-% 102 - 05.31    - OK dla Z4, BAD dla Z3 (Z4 - problem dla nowego zestawu modeli)
-% 103 - 06.26    - BAD dla Z4, OK dla Z3 (Z4 - problem dla nowego zestawu modeli, krótki czas sterowania Z3)
-% 104 - 01.23    - OK dla Z4, OK dla Z3
-% 105 - 03.01    - OK dla Z4, BAD dla Z3  (kilkukrotny skok 2. art)
-% 106 - 17.09.27 - OK dla Z4, BAD dla Z3 (zmiana wydobycia dla Z4 niewidoczna)
-% 107 - 01.04    - OK dla Z4, BAD dla Z3 (dla Z4 przyk³ad na dziwne zachowanie - temp. spada mimo ciœnienia, nie do identyfikacji - za krótkie, FH12)
-% 108 - 02.23    - OK dla Z4, (Z4 - nowy zestaw modeli)
-% 109 - 05.18    - OK dla Z4, (Z4 - nowy zestaw modeli, FH12)
-% 110 - 17.08.15 - OK dla Z4,
-% 111 - 04.09    - OK dla Z4 (Z4 - nowy zestaw modeli bardzo krótki przedzia³, FH 12)
-
-% spadek
-
-% 201 - 02.12    - OK dla Z4 (BAD dla Z4 new), , (Z4 - tylko jeden model, problem dla nowego zestawu)
-% 202 - 03.16    - OK dla Z4, OK dla Z3
-% 203 - 03.22    - BAD dla Z4, (praktycznie bez sterowania dla Z4, w miare dobrze dla nowego zestawu modeli Z4)
-% 204 - 05.09    - OK dla Z4, OK dla Z3
-% 205 - 06.04    - OK dla Z4, OK dla Z3
-% 206 - 17.09.05 - BAD dla Z4, (brak sterowania Z4)
-% 207 - 17.10.10 - OK dla Z4 new,
-% 208 - 17.11.07 - OK dla Z4 new,
-% 209 - 04.02    - BAD dla Z4 new (FH 12)
-% 210 - 02.28    - OK dla Z4 new, (dla Z4 praktycznie bez sterowania, FH 12)
-
-% inne
-
-% 501 - 01.24    - ma³e zmiany skok/spadek - OK dla Z3
-% 502 - 03.26    - ma³e zmiany skok - OK dla Z4 nowe, BAD dla Z3
-% 503 - 05.04    - zanik gazu - BAD dla Z4 nowe
-% 504 - 08.30.17 - skok nieudane - BAD dla Z4 nowe, OK w miare dla Z3
-% 505 - 17.10.24 - skoki nieudane, BAD dla Z4 new,
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % NOWE KOMENTARZE
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -85,11 +44,13 @@ T=MD_constant_values.T_sim; %1000
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-section_nr=4;           % 3 lub 4
-data_nr=204;
+% do pracy 101, 102, 205, 202
 
-plot_str.font_size_1=25;
-plot_str.font_size_2=20;
+section_nr=4;           % 3 lub 4
+data_nr=202;
+
+plot_str.font_size_1=30;     % 25
+plot_str.font_size_2=25;     % 20
 plot_str.lines_nr=2;
 plot_str.offset_1=1;         % zero points
 plot_str.offset_2=45;        % intervals sub.
@@ -116,7 +77,7 @@ if section_nr==3
             
             filename='plikiCSV_Panevezys\FH11\04_23\Z3.csv';'rt'; % 20000 35000
             t_start=4500;
-            t_end=11000;
+            t_end=11000-750;
             plot_str.offset_3=550;       % initial int. sub.
             
             ident_section=MD_ident_section(3,{'FH11_Z2C_TEMP_PV','FH11_Z3_MIX_PRES_PV','FH11_Z3_CLN_VLV_POS_PV',...
@@ -231,7 +192,8 @@ if section_nr==3
         case 202
             filename='plikiCSV_Panevezys\FH11\03_16\Z3.csv';'rt';
             t_start=16000+8000+1750;
-            t_end=34000;
+            t_end=35000;
+            plot_str.legend_loc=1;
             
             ident_section=MD_ident_section(3,{'FH11_Z2C_TEMP_PV','FH11_Z3_MIX_PRES_PV','FH11_Z3_CLN_VLV_POS_PV',...
                 'FH11_Z3_TEMP_PV','FH11_Z3_TEMP_SP','FH11_PULL'},[0.0344 1.236],2272,filename,MD_constant_values_Z3);
@@ -392,7 +354,7 @@ elseif section_nr==4
             
             filename='plikiCSV_Panevezys\FH11\04_23\Z4.csv';'rt'; % 20000 35000
             t_start=4500;
-            t_end=11000;
+            t_end=11000-750;
             
             ident_section=MD_ident_section(2,{'FH11_Z3_TEMP_PV','FH11_Z4_MIX_PRES_PV',...
                 'FH11_Z4_TEMP_PV','FH11_Z4_TEMP_SP','FH11_PULL'},[0.0344 1.236],1055,filename,MD_constant_values_Z4);
@@ -401,7 +363,7 @@ elseif section_nr==4
         case 102
             
             filename='plikiCSV_Panevezys\FH11\05_31\Z4.csv';'rt'; % 20000 35000
-            t_start=27000+250;
+            t_start=27000+250*2;
             t_end=36000-2000;
             
             ident_section=MD_ident_section(2,{'FH11_Z3_TEMP_PV','FH11_Z4_MIX_PRES_PV',...
@@ -512,6 +474,7 @@ elseif section_nr==4
             filename='plikiCSV_Panevezys\FH11\03_16\Z4.csv';'rt';
             t_start=16000+8000+1750;
             t_end=35000;
+            plot_str.legend_loc=1;
             
             ident_section=MD_ident_section(2,{'FH11_Z3_TEMP_PV','FH11_Z4_MIX_PRES_PV',...
                 'FH11_Z4_TEMP_PV','FH11_Z4_TEMP_SP','FH11_PULL'},[0.0344 1.236],1055,filename,MD_constant_values_Z4);
@@ -681,5 +644,10 @@ end
 
 toc
 
-ident_section.plot_signals(cnt,{'Previous section temperature', 'Mixture pressure','Cln. vlv. position'},{'Temp. [$^\circ$C]','Press. [kPa]','Pos. [$\%$]'},1,1,1,plot_str);
+%ident_section.plot_signals(cnt,{'Previous section temperature', 'Mixture pressure','Cln. vlv. position'},{'Temp. [$^\circ$C]','Press. [kPa]','Pos. [$\%$]'},1,1,1,plot_str);
+%ident_section.plot_signals(cnt,{'Temperatura w poprzedniej sekcji', 'Cisnienie mieszanki','Pozycja zaworu ch³odzenia'},{'Temp. [$^\circ$C]','Cisn. [kPa]','Poz. [$\%$]'},1,1,0,plot_str);
+ident_section.plot_signals_praca(cnt,{'Temperatura w poprzedniej sekcji', 'Cisnienie mieszanki','Pozycja zaworu chlodzenia'},{'Temp. [$^\circ$C]','Cisn. [kPa]','Poz. [$\%$]'},1,0,0,plot_str);
+
+ident_section.plot_eigenvalues(plot_str);
+ident_section.calculate_MSE();
 ident_section.plot_eigenvalues(plot_str);

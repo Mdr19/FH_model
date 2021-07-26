@@ -16,10 +16,13 @@ switch(data_set)
         pull_var_name='FH11_PULL';
         
         pull_steps_original=[1 2400 2800 2900 4800];
-        pull_values_original=[114 95 100 105 112];
+        pull_values_original=[114 95 100 105 112]*0.7;
         
-        pull_steps_saved=[1 2900  5000];
-        pull_values_saved=[114 100 112];
+        pull_steps_saved=[1 2450 2900  5000];
+        pull_values_saved=[114 95 100 112]*0.7;
+        
+        %pull_steps_saved=pull_steps_original;
+        %pull_values_saved=pull_values_original;
         
         if zone_nr==3
             %temp_SP_steps=[1 400+500 820+500 2000-400+500 2500+100+500 3500-100+500 4300+500 5400+500];
@@ -61,6 +64,134 @@ switch(data_set)
         
         pull_steps_saved=[1 2800 3100 5200];
         pull_values_saved=[74 55 67 63];
+        
+        %pull_steps_saved=pull_steps_original;
+        %pull_values_saved=pull_values_original;
+        
+        if zone_nr==3
+            %temp_SP_steps=[1 1000 2500 4500];
+            %temp_SP_values=[1158 1168 1175 1183];
+                        
+            %[temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(500,5000,4,1158+3,1183+3);
+
+            % 1 exmp
+            %[temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(1000,6000,5,1158,1183);
+            
+            %temp_SP_steps=[1 1020 2400 3200+500 4000+500 5000+500 5400+500];
+            
+            % 2 exmp
+            %temp_SP_steps=[1 1020 2400 3200 4000 5000 5400+500];
+            %temp_SP_values=[1158 1168 1173 1178 1183 1180 1178];
+
+            % 3 exmp wzorcowy
+            temp_SP_steps=[1 1000 2000 3000 4000 5000];
+            temp_SP_values=[1158 1165 1170 1175 1180 1183];
+            
+           
+                        
+        elseif zone_nr==4
+            %temp_SP_steps=[1 1020 2000-100 2500+100 3500-100 4300 5400];
+            %temp_SP_values=[1150 1160 1165 1170 1175 1179 1177];
+            
+            % 2 exmp wzorcowy !!
+            [temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(1000+200,5000+200,5,1150,1177);
+            
+            % 3 exmp wzorcowy
+            %temp_SP_steps=[1 1200 2200 3200 4200 5200];
+            %temp_SP_values=[1150 1160 1165 1170 1174 1177];
+        end
+        
+    case 10
+        
+        pull_var_name='FH11_PULL';
+        %file_path='plikiCSV_Panevezys\05_31\FH11\Z3.csv';
+        
+        pull_steps_original=[1 2500-100 2800 3000-100 4800];
+        pull_values_original=[74 55 58 67 63];
+        
+        pull_steps_saved=[1 2800 3100 5200];
+        pull_values_saved=[74 55 67 63];
+        
+         if zone_nr==3
+            %temp_SP_steps=[1 1000 2500 4500];
+            [temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(1000,6000,5,1158,1183);
+        
+         elseif zone_nr==4
+             
+            % 2 exmp wzorcowy !!
+            [temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(1000+200,5000+200,5,1150,1177);
+         end
+        
+    case 60
+        
+        pull_var_name='FH11_PULL';
+        %file_path='plikiCSV_Panevezys\05_31\FH11\Z3.csv';
+        
+        pull_steps_original=[1 2785 2850 4800 5250];
+        %pull_steps_original(2:end)=pull_steps_original(2:end)+1500+1000;
+        pull_values_original=[55 40 42 44 42];
+        
+        pull_steps_saved=[1 2800 3000];
+        pull_values_saved=[55 40 42];
+        
+        if zone_nr==3
+            
+            % ex 0
+            %temp_SP_steps=[1 1000 2000 2500 3500];
+            %temp_SP_values=[1162 1170 1175 1180 1185];
+
+            [temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(1000,4500,5,1162,1185);
+            
+            % old
+            %5temp_SP_steps=[1 1000 2500 3500 4500 6000];
+            %temp_SP_steps(2:end)=temp_SP_steps(2:end)+500;
+            %temp_SP_values=[1162 1170 1175 1180 1184 1182];
+            
+            %new
+            
+            %ex 1
+            %temp_SP_steps=[1 1000 2500 3500 4500 6000];
+            %temp_SP_values=[1162 1170 1175 1180 1184 1182];
+            %temp_SP_steps(3:end)=temp_SP_steps(3:end)+400;
+            
+        elseif zone_nr==4
+            %temp_SP_steps=[1 1020 2000-100 2500+100 3500-100 4300 5400];
+            %temp_SP_values=[1150 1160 1165 1170 1175 1179 1177];
+            %[temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(300,5000,4,1150+5,1177+3);
+            
+            %[temp_SP_steps, temp_SP_values]=MD_generate_SP_evenly(1500,5500,4,1155,1178);
+            %temp_SP_steps(2:end)=temp_SP_steps(2:end)-400;
+            
+            %temp_SP_steps=[1 1300 2800 3800 4800 6300];
+            %temp_SP_steps=[1 1000 2500 3500 4500 6000];
+            %temp_SP_steps(2:end)=temp_SP_steps(2:end)+300;
+            %temp_SP_values=[1155 1163 1168 1173 1178 1176];
+            
+            % old
+            temp_SP_steps=[1 1050 2700 3700 4700 6200];
+            %temp_SP_steps(2:end)=temp_SP_steps(2:end)+500;
+            temp_SP_values=[1155 1163 1168 1173 1178 1176];
+
+            %new
+            
+            % ex 1
+            %temp_SP_steps=[1 1150 2700 3700 4700 6200];
+            %temp_SP_values=[1155 1163 1168 1173 1178 1176];
+            %temp_SP_steps(3:end)=temp_SP_steps(3:end)+400;
+
+        end
+        
+    case 10
+        
+        
+        pull_var_name='FH11_PULL';
+        %file_path='plikiCSV_Panevezys\05_31\FH11\Z3.csv';
+        
+        pull_steps_original=[1 2500-100 2800 3000-100 4800];
+        pull_values_original=[74 55 58 67 63];
+        
+        pull_steps_saved=pull_steps_original;
+        pull_values_saved=pull_values_original;
         
         %pull_steps_saved=pull_steps_original;
         %pull_values_saved=pull_values_original;

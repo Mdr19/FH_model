@@ -35,11 +35,11 @@ classdef MD_constant_values_Z3_PDE_sim
         min_inputs_ident=2;              % minimalna liczba wejsæ dla modelu
         T_ob=MD_constant_values_Z3_PDE_sim.T_sim*2; % szerokœæ interwa³u obserwacji  %%!!!!!!!!!!!!!!!!!! 500 dla rzeczywistych (2*250)
         T_sim=250;                                               % szerokoœæ interwa³u syulacji
-        model_change_threshold=MD_constant_values_Z3.T_sim;     % próg od którego re-identyfikacja - bylo MD_constant_values.T_sim*0.2
+        model_change_threshold=MD_constant_values_Z3.T_sim*2;     % próg od którego re-identyfikacja - bylo MD_constant_values.T_sim*0.2
         var_threshold=0.01;              % minimalna wariancja dla wejœcia    % bylo 0.01
         corr_threshold=0.5;
         change_model=1;                  % update modelu podczas symulacji
-        model_reident=1;                 % re-identyfikacja modelu GS
+        model_reident=0;                 % re-identyfikacja modelu GS
         sum_sqr_difference=1;            % ró¿nica model-obiekt abs/sqr
         
         %sprawdznie interwa³ów (wariancja/korelacja)
@@ -144,41 +144,3 @@ classdef MD_constant_values_Z3_PDE_sim
         
     end
 end
-
-
-%{
-      ident_models1_N=3;
-        ident_models1_M=4;
-        ident_models1_h=250
-        ident_models1_n=1;
-        ident_models1_m=3;
-        ident_models1_eta=[1 1 1 1 1];
-        
-        ident_models2_N=5;
-        ident_models2_M=6;
-        ident_models2_h=250;
-        ident_models2_n=1;
-        ident_models2_m=4;                  %bylo 4
-        ident_models2_eta=[1 1 1 1 1 1];
-        
-        ident_models3_N=3;
-        ident_models3_M=4;
-        ident_models3_h=500;            %!!!!!!!!!!!!!!!!!! 500 dla rzeczywistych
-        ident_models3_n=1;
-        ident_models3_m=3;
-        ident_models3_eta=[1 1 1 1 1];
-        
-        ident_models4_N=3;
-        ident_models4_M=4;
-        ident_models4_h=100;        %100
-        ident_models4_n=1;
-        ident_models4_m=3;
-        ident_models4_eta=[1 1 1 1 1];
-        
-        ident_models5_N=5;
-        ident_models5_M=6;
-        ident_models5_h=100;         %25
-        ident_models5_n=1;
-        ident_models5_m=4;
-        ident_models5_eta=[1 1 1 1 1 1];
-%}

@@ -175,24 +175,45 @@ if method_params.model_reident
             [models(i).u_d, models(i).y_d]=obtain_modulated_signals_SISO(sys_input(i,:),sys_output-sys_out_sim',method_params,model_params);
             
             for j=2:model_params.m
-                models(i).X(j-1,:)=models(i).y_d(j,:);
+                models(i).X(:,j-1)=models(i).y_d(j,:);
             end
             
             for j=1:model_params.n
-                models(i).X(j+model_params.m-1,:)=models(i).u_d(j,:);
+                models(i).X(:,j+model_params.m-1)=models(i).u_d(j,:);
             end
             
-            models(i).X=models(i).X';
+            %models(i).X=models(i).X';
             models(i).Y=models(i).y_d(1,:)';
             
             %p(i,1)=-ni_min(1);
             models(i).p=-models(i).vector(2:end)/models(i).vector(1);
             
-            models(i).phi=models(i).X'*models(i).X;
+            if method_params.IV_method
+                state_space=ss(models(i).A,models(i).B,models(i).C,models(i).D);
+                models(i).y_sim=lsim(state_space,sys_input(i,:),t);
+                [models(i).u_IV, models(i).y_IV]=obtain_modulated_signals_SISO(sys_input(i,:),models(i).y_sim);
+                
+                for j=2:m
+                    models(i).Z(:,j-1)=models(i).y_IV(j,:);
+                end
+                
+                for j=1:n
+                    models(i).Z(:,j+m-1)=models(i).u_IV(j,:);
+                end
+                
+            end
+            
+            if method_params.IV_method
+                models(i).phi=models(i).Z'*models(i).X;
+                models(i).Y_=models(i).Z'*models(i).Y;
+            else
+                models(i).phi=models(i).X'*models(i).X;
+                models(i).Y_=models(i).X'*models(i).Y;
+            end
+            
             models(i).L=tril(models(i).phi);
             models(i).U=models(i).phi-models(i).L;
             
-            models(i).Y_=models(i).X'*models(i).Y;
             disp('---------------------------------------------------');
             disp(['Model ' num2str(nr) ' of ' num2str(sim_max_iters)]);
             isPositiveDefinite(models(i).phi);
@@ -205,8 +226,11 @@ if method_params.model_reident
             
             for i=1:ident_inputs_nr
                 if (nr==1) || (i==pos_next)
-                    
-                    models(i).p=inv(models(i).X'*models(i).X)*models(i).X'*models(i).Y;
+                    if method_params.IV_method
+                        models(i).p=inv(models(i).phi)*models(i).Z'*models(i).Y;
+                    else
+                        models(i).p=inv(models(i).phi)*models(i).X'*models(i).Y;
+                    end
                     disp(models(i).p')
                     disp(['Wynik ' num2str(sum(models(i).X*models(i).p-models(i).Y))]);
                     models(i).vector=[-1; models(i).p];

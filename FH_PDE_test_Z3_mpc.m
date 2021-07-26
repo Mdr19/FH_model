@@ -4,16 +4,22 @@ clear all
 warning('off')
 
 global MPC_model
+global temp_zone_prev_inp
+global time_horizon
 
 %stare
 %FH_data.k_1=0.000035320876450;                   %0.000034735233678004;
 %FH_data.k_2=0.012490048627167;                   %0.000813764203449597*15;
 
 sample_time=10;
-elements_nr=5;
+elements_nr=5*2;
+MPC_horizon=75; %150/2;
+T_p=250;
 
-plot_str.font_size_1=25;
-plot_str.font_size_2=20;
+time_horizon=250;
+
+plot_str.font_size_1=30;     % 25
+plot_str.font_size_2=25;     % 20
 plot_str.lines_nr=2;
 plot_str.offset_1=1;         % zero points
 plot_str.offset_2=45;        % intervals sub.
@@ -35,8 +41,10 @@ FH3_data.k_4=0.002548259469871;
 % 4 i 8
 
 % 7 - spadek
+% 8, 10 - wzrost
 
-data_set=7;
+
+data_set=8;
 
 switch data_set
     case 1
@@ -84,7 +92,7 @@ switch data_set
         FH4_data.sim_date='05_09';
         FH4_data.start_index=61000;
         
-        intervals_nr=30-3; %+15; %50;%+25; %45
+        intervals_nr=29; %+15; %50;%+25; %45
         signals_len=10000;
         plot_str.legend_loc=1;
         
@@ -98,17 +106,23 @@ switch data_set
         %FH3_data.start_index=27000+1000;
         FH3_data.start_index=27000;
         
-        
-        FH4_data.sim_date='05_31';
-        %FH4_data.start_index=27000+1000;
-        
-        intervals_nr=24+4; %50;%+25; %45  -12
+               
+        intervals_nr=25; %50;%+25; %45  -12
         signals_len=7000;
         
     case 9
         FH_data.sim_date='01_23';
         FH_data.start_index=27000;
         intervals_nr=30; %7; %28;
+       
+    case 10
+        FH3_data.sim_date='05_31';
+        %FH3_data.start_index=27000+1000;
+        FH3_data.start_index=27000;
+       
+        intervals_nr=24+4; %50;%+25; %45  -12
+        signals_len=7000;
+       
     case 15
         FH_data.sim_date='02_12';
         FH_data.start_index=26000;
@@ -208,30 +222,87 @@ interval=MD_constant_values.T_sim;
 tStart = clock;
 for i=1:intervals_nr
     
+    if ~isempty(ident_section_Z3.MPC_model)
+        if ident_section_Z3.ident_models(end).inputs_to_ident(1)
+            
+            int_nr=1;
+            
+            prev_section_inp=FH_sections(1).get_signal(1,ident_section_Z3.signals_intervals(end).time_end_file-ident_section_Z3.signals_intervals(end).prev_section_del-int_nr*interval,...
+                ident_section_Z3.signals_intervals(end).time_end_file-ident_section_Z3.signals_intervals(end).prev_section_del+interval)-ident_section_Z3.ident_models(end).offset_value(1);
+            
+            temp_zone_prev_inp=prev_section_inp(end-250:end);
+            
+            if FH3_data.sim_mode==3
+                MPC_model.Z3_eta_d=FH_define_prev_zone_eta(ident_section_Z3.MPC_model.Ap,ident_section_Z3.MPC_model.Lzerot,prev_section_inp(end-interval:end),T_p);
+            end
+            
+            
+            %{
+            figure(14)
+            subplot(4,1,1);
+            plot(prev_section_inp);
+            subplot(4,1,2);
+            plot(diff(prev_section_inp));
+            subplot(4,1,3);
+            %plot(smooth_diff(prev_section_inp));
+            plot(filter(-smooth_diff(10),1,prev_section_inp));
+            subplot(4,1,4);
+            %plot(smooth_diff(prev_section_inp));
+            plot(filter(-smooth_diff(20),1,prev_section_inp));
+
+            if MPC_model.Z3_new_model_set
+                X0=MPC_model.Z3_new.X0;
+                eta_d=FH_define_prev_zone_eta(ident_section_Z3,MPC_horizon,prev_section_inp(end-MPC_horizon:end));
+                MPC_model.Z3_new.eta_d=eta_d;
+            else
+                X0=MPC_model.Z3.X0;
+                eta_d=FH_define_prev_zone_eta(ident_section_Z3,MPC_horizon,prev_section_inp(end-MPC_horizon:end));
+                MPC_model.Z3.eta_d=eta_d;
+            end
+            %}
+            
+            
+        end
+    end
+    
+    
     FH_sections(1).perform_simulation(cnt_start+i*interval);
     %FH_sections(2).perform_simulation(cnt_start+i*interval);
     %FH_sections(2).perform_simulation_multizone(cnt_start+i*interval,FH_sections(1));
     
     ident_section_Z3.define_interval_plant(FH_sections(1),i);
     ident_section_Z3.simulate_model_output_plant(FH_sections(1),(i-1)*interval,i*interval-1);
-    ident_section_Z3.ident_model_plant(FH_sections(1));
+    
+    if isempty(ident_section_Z3.current_model) || FH_sections(1).get_last_SP_diff(MD_constant_values.model_diff_intervals)>MD_constant_values.new_OP_diff
+        ident_section_Z3.ident_model_plant(FH_sections(1));
+    end
     
     % nowy OP
-    if FH_sections(1).get_last_SP_diff(4)>MD_constant_values.new_OP_diff %&& 0==1
+    if FH_sections(1).get_last_SP_diff(MD_constant_values.model_diff_intervals)>MD_constant_values.new_OP_diff %&& 0==1
         ident_section_Z3.ident_alternative_model_plant(FH_sections(1));
         ident_section_Z3.select_best_model();
     end
     
     if ~isempty(ident_section_Z3.current_model) &&...
-                ((~isempty(ident_section_Z3.ident_models(ident_section_Z3.current_model_nr).intervals(end-1).interval_type) &&...
-                ident_section_Z3.ident_models(ident_section_Z3.current_model_nr).intervals(end-1).interval_type=='I') ||...
-                (~isempty(ident_section_Z3.ident_models(ident_section_Z3.current_model_nr).intervals(end).interval_type) &&...
-                ident_section_Z3.ident_models(ident_section_Z3.current_model_nr).intervals(end).interval_type=='R'))
+            ((~isempty(ident_section_Z3.ident_models(ident_section_Z3.current_model_nr).intervals(end-1).interval_type) &&...
+            ident_section_Z3.ident_models(ident_section_Z3.current_model_nr).intervals(end-1).interval_type=='I') ||...
+            (~isempty(ident_section_Z3.ident_models(ident_section_Z3.current_model_nr).intervals(end).interval_type) &&...
+            ident_section_Z3.ident_models(ident_section_Z3.current_model_nr).intervals(end).interval_type=='R'))
         
-        %ident_section_Z3.obtain_MPC_model(0.03);        %bylo 0.03
-        ident_section_Z3.obtain_MPC_model(5,0.6,150/2,MD_constant_values.h_Z3);        %0.03
-        %FH_get_MPC_model(ident_section_Z3,'Z3');
-        FH_set_MPC_model(ident_section_Z3,'Z3',0);
+        
+        if FH3_data.sim_mode==2
+            ident_section_Z3.obtain_MPC_model(5,0.6,MPC_horizon,MD_constant_values.h_Z3);        %0.03
+            FH_set_MPC_model(ident_section_Z3,'Z3');
+        elseif FH3_data.sim_mode==3
+            ident_section_Z3.obtain_MPC_model_FF(5,0.6,MPC_horizon,MD_constant_values.h_Z3);        %0.03
+            FH_set_MPC_model_FF(ident_section_Z3,'Z3');
+        elseif FH3_data.sim_mode==4
+            ident_section_Z3.obtain_DMPC_model(sample_time,5,100);        %0.03 bylo N=3      50 i 100       100 i 150
+            FH_set_DMPC_model(ident_section_Z3,'Z3');
+        elseif FH3_data.sim_mode==5
+            ident_section_Z3.obtain_DMPC_model_FF(sample_time,5,20);        %0.03 bylo N=3      50 i 100       100 i 150
+            FH_set_DMPC_model(ident_section_Z3,'Z3');
+        end
         
         
     elseif ~isempty(ident_section_Z3.MPC_model)
@@ -268,5 +339,17 @@ for i=1:zones_nr
     FH_sections(i).plot_results_multiplot();
 end
 
-ident_section_Z3.plot_signals(123,{'Previous section temperature', 'Mixture pressure','Cln. vlv. position'},{'Temp. [$^\circ$C]','Press. [kPa]','Pos. [%]'},1,1,1,plot_str);
+
+%ident_section_Z3.plot_signals_praca(123,{'Temperatura w poprzedniej sekcji', 'Cisnienie mieszanki','Pozycja zaworu chlodzenia'},{'Temp. [$^\circ$C]','Cisn. [kPa]','Poz. [$\%$]'},1,0,0,plot_str);
+ident_section_Z3.plot_signals_MMAR(124,{'Previous section temperature', 'Mixture pressure','Cln. vlv. position'},{'Temp. [$^\circ$C]','Press. [kPa]','Pos. [%]'},1,1,plot_str,FH_sections(1));
+
+ident_section_Z3.plot_output_praca(123,1,plot_str);
+ident_section_Z3.plot_inputs_praca(125,{'Temperatura w poprzedniej sekcji', 'Cisnienie mieszanki','Pozycja zaworu chlodzenia'},{'Temp. [$^\circ$C]','Cisn. [kPa]','Poz. [$\%$]'},...
+    1,0,plot_str,FH_sections(1),MD_constant_values.T_sim,MD_constant_values.Z3_model_delay);
+
+
+
+%ident_section_Z3.plot_signals(123,{'Previous section temperature', 'Mixture pressure','Cln. vlv. position'},{'Temp. [$^\circ$C]','Press. [kPa]','Pos. [%]'},1,1,1,plot_str);
 ident_section_Z3.plot_eigenvalues(plot_str);
+FH_sections(1).get_SP_diff;
+%ident_section_Z3.calculate_MSE()

@@ -45,7 +45,7 @@ for i=1:method_params.ident_models_nr
             [ni_min, ~]=MD_MFM_model_ident_LSM(ident_inputs_nr,sys_ident_input,real_sys_output,method_params,params(i));
             params(i).vector=[ni_min(1:params(i).m-1);-1; ni_min(params(i).m:end)];
         case 3
-            [ni_min, ~]=MD_MFM_model_ident_out_LSM(ident_inputs_nr,sys_ident_input,real_sys_output,params(i));
+            [ni_min, ~]=MD_MFM_model_ident_out_LSM(ident_inputs_nr,sys_ident_input,real_sys_output,method_params,params(i));
             params(i).vector=[-1; ni_min(1:params(i).m-1); ni_min(params(i).m:end)];
             
         otherwise
@@ -215,20 +215,42 @@ if method_params.model_reident
             [models(i).u_d, models(i).y_d]=obtain_modulated_signals(current_sys_signals(i).input,real_sys_output-sys_out_sim,method_params,model_params);
             
             for j=2:model_params.m
-                models(i).X(j-1,:)=models(i).y_d(j,:);
+                models(i).X(:,j-1)=models(i).y_d(j,:);
             end
             
             for j=1:size(models(i).u_d,1) %model_params.n
-                models(i).X(j+model_params.m-1,:)=models(i).u_d(j,:);
+                models(i).X(:,j+model_params.m-1)=models(i).u_d(j,:);
             end
             
-            models(i).X=models(i).X';
+            %models(i).X=models(i).X';
             models(i).Y=models(i).y_d(1,:)';
             
             %p(i,1)=-ni_min(1);
             models(i).p=-models(i).vector(2:end)/models(i).vector(1);
             
-            models(i).phi=models(i).X'*models(i).X;
+            if method_params.IV_method
+                state_space=ss(models(i).A,models(i).B,models(i).C,models(i).D);
+                models(i).y_sim=lsim(state_space,sys_input(i:i+size(models(i).B,2)-1,:),t);
+                [models(i).u_IV, models(i).y_IV]=obtain_modulated_signals(current_sys_signals(i).input,models(i).y_sim,method_params,model_params);
+                
+                for j=2:model_params.m
+                    models(i).Z(:,j-1)=models(i).y_IV(j,:);
+                end
+                
+                for j=1:size(models(i).u_d,1)
+                    models(i).Z(:,j+model_params.m-1)=models(i).u_IV(j,:);
+                end    
+            end
+            
+            if method_params.IV_method
+                models(i).phi=models(i).Z'*models(i).X;
+                models(i).Y_=models(i).Z'*models(i).Y;
+            else
+                models(i).phi=models(i).X'*models(i).X;
+                models(i).Y_=models(i).X'*models(i).Y;
+            end
+            
+            %models(i).phi=models(i).X'*models(i).X;
             models(i).L=tril(models(i).phi);
             models(i).U=models(i).phi-models(i).L;
             
@@ -245,8 +267,12 @@ if method_params.model_reident
             
             for i=1:length(models)
                 if (nr==1) || (i==pos_next)
-                    
-                    models(i).p=inv(models(i).X'*models(i).X)*models(i).X'*models(i).Y;
+                     if method_params.IV_method
+                        models(i).p=inv(models(i).phi)*models(i).Z'*models(i).Y;
+                    else
+                        models(i).p=inv(models(i).phi)*models(i).X'*models(i).Y;
+                    end
+                    %models(i).p=inv(models(i).phi)*models(i).X'*models(i).Y;
                     disp(models(i).p')
                     disp(['Wynik ' num2str(sum(models(i).X*models(i).p-models(i).Y))]);
                     models(i).vector=[-1; models(i).p];
